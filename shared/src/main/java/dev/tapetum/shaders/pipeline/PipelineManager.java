@@ -53,6 +53,16 @@ public class PipelineManager implements ShaderEngine {
 		return current;
 	}
 
+	@Override
+	public void beginLevelRendering() {
+		current.beginLevelRendering();
+	}
+
+	@Override
+	public boolean isShaderPackActive() {
+		return current.isShaderPackActive();
+	}
+
 	/** A failed pass must not be retried every frame or leave a half-rendered GL state behind. */
 	public void finalizeLevelRendering() {
 		try {
@@ -66,6 +76,15 @@ public class PipelineManager implements ShaderEngine {
 			} catch (RuntimeException cleanupFailure) {
 				LOGGER.error("Failed to release the stopped shader pipeline", cleanupFailure);
 			}
+		}
+	}
+
+	@Override
+	public void destroy() {
+		RenderingPipeline pipeline = current;
+		current = VanillaRenderingPipeline.INSTANCE;
+		if (pipeline != null && pipeline != VanillaRenderingPipeline.INSTANCE) {
+			pipeline.destroy();
 		}
 	}
 

@@ -3,8 +3,9 @@
 # Tapetum Shaders
 
 A Fabric shaderpack interface with a versioned, clean-room Tapetum rendering engine and an
-externally installed Sodium. The current releases still contain a temporary legacy Iris backend
-while the native engine replaces its geometry, shadow and post-processing stages.
+externally installed Sodium. The current releases select the native Tapetum screen-space backend.
+A temporary legacy Iris backend remains packaged only during the migration while Tapetum replaces
+its geometry, shadow and post-processing stages.
 
 Tapetum will not copy, rename, or present Iris code as Tapetum code. Third-party backends remain
 clearly identified, licensed and isolated behind the `ShaderEngine` contract.

@@ -49,8 +49,9 @@ public final class EmbeddedEngineContractTest {
             Set<String> mixins = new HashSet<>();
             json(mod, "tapetumshaders.mixins.json").getAsJsonArray("client")
                 .forEach(e -> mixins.add(e.getAsString()));
-            require(mixins.equals(Set.of("MixinIrisKeybinds", "IrisShaderPackScreenAccess", "MixinIrisFeatureValidation")),
-                "Only embedded-engine mixins, never the old full-screen renderer");
+            require(mixins.equals(Set.of("MixinLevelRenderer", "MixinIrisKeybinds",
+                    "IrisShaderPackScreenAccess", "MixinIrisFeatureValidation")),
+                "Native Tapetum renderer hook plus isolated legacy-engine mixins");
             for (String mixin : mixins) {
                 require(mod.getJarEntry("dev/tapetum/shaders/mixin/" + mixin + ".class") != null,
                     "Mixin class packaged: " + mixin);
