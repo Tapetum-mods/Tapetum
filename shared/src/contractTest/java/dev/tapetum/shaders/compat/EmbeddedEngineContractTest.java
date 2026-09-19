@@ -49,7 +49,7 @@ public final class EmbeddedEngineContractTest {
             Set<String> mixins = new HashSet<>();
             json(mod, "tapetumshaders.mixins.json").getAsJsonArray("client")
                 .forEach(e -> mixins.add(e.getAsString()));
-            require(mixins.equals(Set.of("MixinIrisKeybinds", "IrisShaderPackScreenAccess", "MixinIrisFeatureValidation")),
+            require(mixins.equals(Set.of("MixinIrisKeybinds", "IrisShaderPackScreenAccess")),
                 "Only embedded-engine mixins, never the old full-screen renderer");
             for (String mixin : mixins) {
                 require(mod.getJarEntry("dev/tapetum/shaders/mixin/" + mixin + ".class") != null,
@@ -61,9 +61,6 @@ public final class EmbeddedEngineContractTest {
                 "Version-specific O key injection target");
             require(node(iris, "net/irisshaders/iris/gui/screen/ShaderPackScreen").fields.stream()
                 .anyMatch(f -> f.name.equals("optionMenuOpen") && f.desc.equals("Z")), "Native shader options accessor");
-            require(calls(node(iris, "net/irisshaders/iris/shaderpack/ShaderPack"), "<init>",
-                "net/irisshaders/iris/shaderpack/properties/ShaderProperties", "getRequiredFeatureFlags", "()Ljava/util/List;"),
-                "Unsupported-feature protection injection target");
             // Every Iris method/field referenced by the bridge must exist in the exact shipped engine.
             ClassNode bridge = node(mod, "dev/tapetum/shaders/compat/iris/IrisRenderingBridge");
             for (var method : bridge.methods) {
