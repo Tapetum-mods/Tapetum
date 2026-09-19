@@ -1,0 +1,124 @@
+// Minecraft-version module. Its own sources are just the VersionCompat class; everything else is
+// compiled from ../shared, so a change there lands in every supported version at once.
+//
+// NOT CURRENTLY BUILDABLE - and deliberately named "build.gradle.kts.parked" rather than
+// "build.gradle.kts" so that no tool picks it up as an active build script. Excluding the module
+// from settings.gradle.kts is enough for the Gradle CLI, but IDEs scan for build scripts on disk
+// and will try to configure this project anyway, reporting the Loom failure below as a workspace
+// error. Rename it back to build.gradle.kts (and re-add "mc1.21.11" to settings.gradle.kts) to
+// resume work on it. See README's "Status: mc1.21.11
+// (parked, not deleted)" for the full story; short version: (1) Minecraft-jar setup fails on a real
+// Fabric Loom bug processing fabric-lifecycle-events-v1's access widener, reproduced identically
+// across Loom 1.15.4, 1.16.3, and 1.17.20 (tried below) - not fixed by this project's Gradle
+// 9.4.0->9.7.1 bump either, so the root cause is still open; and (2) shared/gui does not compile
+// against 1.21.11 at all (confirmed against Mojang's official mappings, not assumed) - it needs its
+// own fork of ShaderPackScreen/ShaderPackListWidget before this module can even attempt to build.
+// MixinLevelRenderer and VersionCompat in this module ARE confirmed correct against the real
+// 1.21.11 mappings already; they are not what's blocking this.
+plugins {
+    id("java")
+    // 1.17.20 is the newest Loom release as of this writing; kept pinned here (rather than reverted
+    // to match mc26.1/mc26.2's 1.15.4) since it's the version the access-widener bug was last
+    // reproduced against - whoever resumes this should keep re-checking newer Loom releases first.
+    id("net.fabricmc.fabric-loom") version("1.17.20")
+}
+
+val minecraftVersion: String by extra(project.property("mc12111_minecraft") as String)
+val fabricApiVersion: String by extra(project.property("mc12111_fabricApi") as String)
+val sodiumVersion: String by extra(project.property("mc12111_sodium") as String)
+val fabricLoaderVersion: String by project
+val modVersion: String by project
+val mavenGroup: String by project
+val archivesBaseName: String by project
+
+group = mavenGroup
+version = "$modVersion+mc$minecraftVersion"
+
+base {
+    archivesName.set(archivesBaseName)
+}
+
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(25))
+}
+
+repositories {
+    maven {
+        name = "Fabric"
+        url = uri("https://maven.fabricmc.net/")
+    }
+    maven {
+        name = "CaffeineMC"
+        url = uri("https://maven.caffeinemc.net/releases")
+    }
+    mavenCentral()
+}
+
+sourceSets {
+    main {
+        java.srcDir(rootProject.file("shared/src/main/java"))
+        resources.srcDir(rootProject.file("shared/src/main/resources"))
+    }
+}
+
+dependencies {
+    minecraft("com.mojang:minecraft:$minecraftVersion")
+    implementation("net.fabricmc:fabric-loader:$fabricLoaderVersion")
+
+    // The version-independent core is compiled in rather than shipped as a separate jar, so each
+    // version's jar stays a single self-contained file.
+    implementation(project(":common"))
+
+    fun embedFabricApiModule(name: String) {
+        val module = fabricApi.module(name, fabricApiVersion)
+        implementation(module)
+        include(module)
+    }
+
+    embedFabricApiModule("fabric-api-base")
+    // Renamed to fabric-key-mapping-api-v1 in later Fabric API releases (used by mc26.1/mc26.2);
+    // confirmed against the real fabric-api-0.141.3+1.21.11 POM, which still calls it this.
+    embedFabricApiModule("fabric-key-binding-api-v1")
+    embedFabricApiModule("fabric-lifecycle-events-v1")
+
+    // Optional integration: compiled against, never shipped or required at runtime. See README.
+    compileOnly("net.caffeinemc:sodium-fabric:$sodiumVersion")
+}
+
+loom {
+    mixin {
+        defaultRefmapName.set("tapetumshaders.refmap.json")
+        useLegacyMixinAp = false
+    }
+
+    runs {
+        named("client") {
+            client()
+            configName = "Fabric Client ($minecraftVersion)"
+            ideConfigGenerated(true)
+            runDir("../run/$minecraftVersion")
+        }
+    }
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.encoding = "UTF-8"
+    options.release.set(25)
+}
+
+tasks.jar {
+    from(project(":common").sourceSets.main.get().output)
+}
+
+tasks.processResources {
+    inputs.property("version", project.version)
+    inputs.property("sodiumVersion", sodiumVersion)
+
+    filesMatching("fabric.mod.json") {
+        expand(mapOf(
+            "version" to project.version,
+            "minecraftVersion" to minecraftVersion,
+            "sodiumVersion" to sodiumVersion.substringBefore("+")
+        ))
+    }
+}

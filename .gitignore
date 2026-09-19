@@ -1,0 +1,19 @@
+# Gradle
+.gradle/
+build/
+*/build/
+*/bin/
+
+# Fabric/Loom run environment
+run/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+
+# Compiled classes (au cas où hors build/)
+*.class
