@@ -12,6 +12,8 @@ import net.minecraft.client.gui.screens.Screen;
  * same contract as its geometry, shadow and post-processing stages become production-ready.</p>
  */
 public interface ShaderEngine extends RenderingPipeline {
+	String name();
+
 	void reload() throws IOException;
 
 	void syncSelection();

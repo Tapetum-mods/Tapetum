@@ -86,10 +86,11 @@ public class PipelineManager {
 				error);
 		}
 		try {
-			dev.tapetum.shaders.compat.iris.IrisRenderingBridge.applySelection();
-			current = dev.tapetum.shaders.compat.iris.IrisRenderingBridge.INSTANCE;
+			ShaderEngine engine = TapetumShaders.getShaderEngine();
+			engine.reload();
+			current = engine;
 		} catch (IOException | RuntimeException error) {
-			dev.tapetum.shaders.compat.iris.IrisRenderingBridge.reportFailure(error);
+			LOGGER.error("Shader engine failed to reload; keeping vanilla rendering", error);
 		}
 	}
 

@@ -17,6 +17,11 @@ public final class IrisRenderingBridge implements ShaderEngine {
     private IrisRenderingBridge() {}
 
     @Override
+    public String name() {
+        return "legacy Iris backend " + Iris.getVersion();
+    }
+
+    @Override
     public void reload() throws IOException {
         lastFailure = null;
         var engine = Iris.getIrisConfig();
