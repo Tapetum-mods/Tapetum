@@ -94,6 +94,7 @@ public class PipelineManager {
 	}
 
 	/** Historical prototype retained for regression research, never selected in the shipped client. */
+	@SuppressWarnings("unused")
 	private void reloadExperimentalScreenSpacePipeline() {
 		RenderingPipeline previous = current;
 		current = VanillaRenderingPipeline.INSTANCE;
