@@ -4,10 +4,7 @@
   "package": "dev.tapetum.shaders.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "MixinLevelRenderer",
-    "MixinIrisKeybinds",
-    "IrisShaderPackScreenAccess",
-    "MixinIrisFeatureValidation"
+    "MixinLevelRenderer"
   ],
   "injectors": {
     "defaultRequire": 1

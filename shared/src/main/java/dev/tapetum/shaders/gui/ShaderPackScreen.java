@@ -96,7 +96,7 @@ public class ShaderPackScreen extends Screen {
 	protected void init() {
 		super.init();
 		if (returningFromEngine) {
-			dev.tapetum.shaders.compat.iris.IrisRenderingBridge.syncSelectionFromEngine();
+			TapetumShaders.getShaderEngine().syncSelection();
 			pendingShadersEnabled = TapetumShaders.getConfig().areShadersEnabled();
 			packList = null;
 			returningFromEngine = false;
@@ -251,7 +251,7 @@ public class ShaderPackScreen extends Screen {
 		statusMessage = applied ? describeResult(packList.getSelectedPackName())
 			: Component.translatable("tapetumshaders.gui.status.failed", packList.getSelectedPackName())
 				.withStyle(ChatFormatting.RED);
-		applyButton.setTooltip(dev.tapetum.shaders.compat.iris.IrisRenderingBridge.getLastFailure()
+		applyButton.setTooltip(TapetumShaders.getShaderEngine().lastFailure()
 			.map(error -> Tooltip.create(Component.literal(String.valueOf(error.getMessage())))).orElse(null));
 		return applied;
 	}

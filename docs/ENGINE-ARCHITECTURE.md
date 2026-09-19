@@ -8,19 +8,13 @@ Tapetum is moving to an independent, clean-room shader engine.
 may reload the selected pack, synchronize its options, report failures and provide the active
 `RenderingPipeline`. No UI or version module may call a third-party engine API directly.
 
-## Legacy backend
-
-The current Iris adapter is a temporary compatibility backend. It is isolated in
-`compat/iris/`, retains its own identity and notices, and must not grow new Tapetum features.
-Existing shaderpack support remains available while the native backend is built.
-
 ## Native backend milestones
 
 1. Own shaderpack lifecycle and option model.
 2. Own GLSL preprocessing and program/link diagnostics.
 3. Render terrain and entities through version-specific Sodium hooks.
 4. Provide real G-buffer targets, shadows, composite passes and uniforms.
-5. Replace the legacy backend in the shipped profiles only after headless and in-game checks pass.
+5. Ship the native backend as the only production renderer after headless and in-game checks pass.
 
 The native implementation must be based on Minecraft/Sodium public APIs, GLSL specifications and
 independent tests. It must not copy Iris source, bytecode, private implementation details or

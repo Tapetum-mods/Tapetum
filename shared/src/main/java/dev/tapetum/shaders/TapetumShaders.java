@@ -3,7 +3,6 @@ package dev.tapetum.shaders;
 import dev.tapetum.shaders.config.TapetumConfig;
 import dev.tapetum.shaders.pipeline.PipelineManager;
 import dev.tapetum.shaders.pipeline.ShaderEngine;
-import dev.tapetum.shaders.compat.iris.IrisRenderingBridge;
 import dev.tapetum.shaders.shaderpack.ShaderpackManager;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.api.ModInitializer;

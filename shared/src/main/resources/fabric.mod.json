@@ -3,7 +3,7 @@
   "id": "tapetumshaders",
   "version": "${version}",
   "name": "Tapetum Shaders",
-  "description": "Tapetum shaderpack interface powered by the bundled Iris rendering engine. Requires Sodium.",
+  "description": "Independent Tapetum shader engine for OptiFine-format shaderpacks. Requires Sodium.",
   "authors": [
     "Raik"
   ],
@@ -20,9 +20,6 @@
     ],
     "client": [
       "dev.tapetum.shaders.TapetumShadersClient"
-    ],
-    "preLaunch": [
-      "dev.tapetum.shaders.compat.iris.IrisCompatibilityGuard"
     ]
   },
   "mixins": [
@@ -32,8 +29,6 @@
     "fabricloader": ">=0.19.3",
     "minecraft": "~${minecraftVersion}",
     "java": ">=25",
-    "sodium": ">=0.9.2 <0.10",
-    "iris": "1.11.4"
-  },
-  "custom": { "tapetum:irisVersion": "1.11.4+mc${minecraftVersion}" }
+    "sodium": ">=0.9.2 <0.10"
+  }
 }

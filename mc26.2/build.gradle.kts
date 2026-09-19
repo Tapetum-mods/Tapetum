@@ -69,9 +69,6 @@ dependencies {
     // so the player installs it themselves rather than receiving a bundled copy that would collide
     // with theirs. compileOnly is therefore correct here - required at runtime, absent from the jar.
     compileOnly("net.caffeinemc:sodium-fabric:$sodiumVersion")
-    val irisEngine = "dev.tapetum.embedded:iris-fabric:1.11.4+mc$minecraftVersion"
-    implementation(irisEngine)
-    include(irisEngine)
 }
 
 loom {
@@ -96,9 +93,6 @@ tasks.withType<JavaCompile>().configureEach {
 
 tasks.jar {
     from(project(":common").sourceSets.main.get().output)
-    from(rootProject.file("third_party/iris/licenses")) { into("META-INF/licenses/iris") }
-    from(rootProject.file("third_party/iris/NOTICE.md")) { into("META-INF/licenses/iris") }
-    from(rootProject.file("third_party/iris/iris-sources-$minecraftVersion.zip")) { into("META-INF/sources") }
 }
 
 tasks.processResources {
@@ -128,16 +122,14 @@ val contractTest = sourceSets.create("contractTest") {
 dependencies {
     add(contractTest.compileOnlyConfigurationName, "com.google.errorprone:error_prone_annotations:2.41.0")
 }
-tasks.register<JavaExec>("embeddedEngineContractTest") {
+tasks.register<JavaExec>("nativeEngineContractTest") {
     dependsOn(tasks.jar, tasks.named(contractTest.classesTaskName))
     classpath = contractTest.runtimeClasspath
-    mainClass.set("dev.tapetum.shaders.compat.EmbeddedEngineContractTest")
+    mainClass.set("dev.tapetum.shaders.compat.NativeEngineContractTest")
     javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(25)) })
-    args(tasks.jar.get().archiveFile.get().asFile.absolutePath,
-        rootProject.file("third_party/iris/iris-fabric-1.11.4+mc$minecraftVersion.jar").absolutePath,
-        minecraftVersion)
+    args(tasks.jar.get().archiveFile.get().asFile.absolutePath)
 }
-tasks.check { dependsOn("embeddedEngineContractTest") }
+tasks.check { dependsOn("nativeEngineContractTest") }
 
 // Explicit GPU checks, kept out of build so a display is not required on CI.
 val glTest = sourceSets.create("glTest") {

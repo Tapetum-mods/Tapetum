@@ -1,9 +1,0 @@
-{
-  "schemaVersion": 1,
-  "id": "tapetum_smoke_test",
-  "version": "1.0.0",
-  "name": "Tapetum Isolated Integration Test",
-  "environment": "client",
-  "entrypoints": { "client": ["dev.tapetum.shaders.smoke.EmbeddedEngineSmokeTest"] },
-  "depends": { "tapetumshaders": "*" }
-}

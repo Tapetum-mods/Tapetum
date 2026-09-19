@@ -2,11 +2,9 @@
 
 ## Rendering direction
 
-The user explicitly authorized embedding the Iris rendering engine inside Tapetum on 2026-09-14.
-Ship the pinned engine as a nested JAR with its identity, licenses and corresponding sources intact;
-do not enable the separate Iris JAR in the user's profiles. Sodium remains an external dependency.
-The former screen-space prototype is retained for research but must not render the shipped client.
-Never equate shader compilation or synthetic GPU pixels with correct in-world visuals.
+Tapetum owns its renderer. Do not embed, ship, or enable Iris. Sodium remains an external dependency.
+The native Tapetum pipeline must be the production renderer; never equate shader compilation or
+synthetic GPU pixels with correct in-world visuals.
 
 ## User's Desktop
 

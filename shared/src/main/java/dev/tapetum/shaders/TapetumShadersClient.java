@@ -4,7 +4,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
-/** Iris owns rendering and O/K/R; registering a second set would toggle shaders twice. */
+/** Tapetum owns rendering and shaderpack selection. */
 public class TapetumShadersClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {

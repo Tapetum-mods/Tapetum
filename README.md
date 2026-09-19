@@ -32,7 +32,7 @@ This includes unit tests and embedded-engine archive/API checks, without opening
 The user does in-game visual verification. Do not run GUI or GPU harnesses without new permission.
 
 See [the rendering checkpoint](docs/RENDERING-CHECKPOINT.md) for measured results and limitations,
-and [third-party notices](third_party/iris/NOTICE.md) for licenses, source archives and provenance.
+and the project documentation for the native engine architecture and provenance.
 These builds do not establish compatibility with every pack, GPU, or older Minecraft version.
 
 ## Historical Prototype Notes
