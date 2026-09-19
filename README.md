@@ -1,4 +1,4 @@
-# Tapetum Shaders
+![banner](https://cdn.modrinth.com/data/cached_images/27ae645c7dc03f035fe4444fe5c81700063576d0_0.webp) Tapetum Shaders
 
 A Fabric shaderpack interface using the embedded [Iris](https://github.com/IrisShaders/Iris)
 rendering engine and an externally installed Sodium. Iris is credited and retains its own mod ID.
