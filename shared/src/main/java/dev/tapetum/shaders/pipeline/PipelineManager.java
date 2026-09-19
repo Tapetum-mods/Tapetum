@@ -75,8 +75,16 @@ public class PipelineManager {
 	 * selection. Call this after the selection changes in the GUI, or on startup.
 	 */
 	public void reload() {
-		current.destroy();
+		RenderingPipeline previous = current;
 		current = VanillaRenderingPipeline.INSTANCE;
+		try {
+			if (previous != null) {
+				previous.destroy();
+			}
+		} catch (RuntimeException error) {
+			LOGGER.error("Failed to destroy the previous pipeline while reloading; falling back to vanilla rendering",
+				error);
+		}
 		try {
 			dev.tapetum.shaders.compat.iris.IrisRenderingBridge.applySelection();
 			current = dev.tapetum.shaders.compat.iris.IrisRenderingBridge.INSTANCE;
@@ -88,8 +96,15 @@ public class PipelineManager {
 	/** Historical prototype retained for regression research, never selected in the shipped client. */
 	private void reloadExperimentalScreenSpacePipeline() {
 		RenderingPipeline previous = current;
-		previous.destroy();
 		current = VanillaRenderingPipeline.INSTANCE;
+		try {
+			if (previous != null) {
+				previous.destroy();
+			}
+		} catch (RuntimeException error) {
+			LOGGER.error("Failed to destroy the previous experimental pipeline; falling back to vanilla rendering",
+				error);
+		}
 
 		if (!TapetumShaders.getConfig().areShadersEnabled()) {
 			return;
@@ -290,15 +305,14 @@ public class PipelineManager {
 	 * compiled at a newer version still works, one compiled at an older one may not.</p>
 	 */
 	static String alignVersions(String vertexSource, String fragmentSource, String passName) {
-		int vertexVersion = GlslStageLinkage.declaredVersion(vertexSource);
-		int fragmentVersion = GlslStageLinkage.declaredVersion(fragmentSource);
-		if (vertexVersion >= fragmentVersion) {
-			return vertexSource;
+		String aligned = GlslStageLinkage.alignVersions(vertexSource, fragmentSource, passName);
+		if (!aligned.equals(vertexSource)) {
+			int vertexVersion = GlslStageLinkage.declaredVersion(vertexSource);
+			int fragmentVersion = GlslStageLinkage.declaredVersion(fragmentSource);
+			LOGGER.debug("'{}': raising vertex stage from #version {} to {} to match the fragment stage",
+				passName, vertexVersion, fragmentVersion);
 		}
-
-		LOGGER.debug("'{}': raising vertex stage from #version {} to {} to match the fragment stage",
-			passName, vertexVersion, fragmentVersion);
-		return vertexSource.replaceFirst("#\\s*version\\s+\\d+", "#version " + fragmentVersion);
+		return aligned;
 	}
 
 	/**

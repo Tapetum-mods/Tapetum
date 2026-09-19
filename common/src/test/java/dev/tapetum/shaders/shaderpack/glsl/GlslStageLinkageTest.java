@@ -115,6 +115,28 @@ class GlslStageLinkageTest {
 	}
 
 	@Test
+	void raisesVertexVersionWhenTheFragmentNeedsItEvenWithoutAVertexDirective() {
+		String vertex = "void main() { gl_Position = vec4(0.0); }\n";
+		String fragment = "#version 330\nin vec2 texCoord;\nvoid main() {}\n";
+
+		String aligned = GlslStageLinkage.alignVersions(vertex, fragment, "test");
+
+		assertTrue(aligned.startsWith("#version 330"), aligned);
+	}
+
+	@Test
+	void replacesAnExistingVertexVersionDirectiveInsteadOfPrependingADuplicateOne() {
+		String vertex = "/* header */\n#version 150\nvoid main() { gl_Position = vec4(0.0); }\n";
+		String fragment = "#version 330\nin vec2 texCoord;\nvoid main() {}\n";
+
+		String aligned = GlslStageLinkage.alignVersions(vertex, fragment, "test");
+
+		assertEquals(1, aligned.lines().filter(line -> line.trim().startsWith("#version")).count(), aligned);
+		assertTrue(aligned.contains("#version 330"), aligned);
+		assertFalse(aligned.contains("#version 150"), aligned);
+	}
+
+	@Test
 	void alwaysWritesGlPosition() {
 		// Without this the vertex stage compiles and the pass silently draws nothing.
 		String vertex = GlslStageLinkage.buildFullScreenVertexShader("#version 150\nvoid main() {}", 150);

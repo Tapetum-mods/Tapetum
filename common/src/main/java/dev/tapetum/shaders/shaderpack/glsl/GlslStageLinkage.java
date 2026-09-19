@@ -75,6 +75,34 @@ public final class GlslStageLinkage {
 	}
 
 	/**
+	 * Raises the vertex stage to the fragment stage's version when they disagree.
+	 *
+	 * <p>If the vertex file declares no {@code #version}, the directive is injected at the top so the
+	 * shader remains linkable with the fragment stage.</p>
+	 */
+	public static String alignVersions(String vertexSource, String fragmentSource, String passName) {
+		int vertexVersion = declaredVersion(vertexSource);
+		int fragmentVersion = declaredVersion(fragmentSource);
+		if (vertexVersion >= fragmentVersion) {
+			return vertexSource;
+		}
+
+		String[] lines = vertexSource.split("\n", -1);
+		boolean replaced = false;
+		for (int i = 0; i < lines.length; i++) {
+			if (VERSION_DIRECTIVE.matcher(lines[i]).find()) {
+				lines[i] = lines[i].replaceFirst("^\\s*#\\s*version\\s+\\d+", "#version " + fragmentVersion);
+				replaced = true;
+				break;
+			}
+		}
+		if (replaced) {
+			return String.join("\n", lines);
+		}
+		return "#version " + fragmentVersion + "\n" + vertexSource;
+	}
+
+	/**
 	 * Returns every varying the given (already include-expanded and core-profile-patched) fragment
 	 * source declares as an input, in declaration order and without duplicates.
 	 *
