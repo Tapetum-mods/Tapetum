@@ -44,8 +44,8 @@ public class TapetumShaders implements ModInitializer {
 		shaderpackManager = new ShaderpackManager(SHADERPACKS_DIR);
 		shaderpackManager.refresh();
 
-		shaderEngine = IrisRenderingBridge.INSTANCE;
 		pipelineManager = new PipelineManager();
+		shaderEngine = pipelineManager;
 
 		LOGGER.info("Tapetum Shaders initialized. Found {} shaderpack(s) in {}",
 			shaderpackManager.getAvailablePacks().size(), SHADERPACKS_DIR);

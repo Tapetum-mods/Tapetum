@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Optional;
+import net.minecraft.client.gui.screens.Screen;
 
 /**
  * Owns the currently active {@link RenderingPipeline} and swaps it whenever the selected
@@ -37,10 +38,16 @@ import java.util.Optional;
  * falls back to {@link VanillaRenderingPipeline} for anything else (no such programs, a compile
  * error, a non-OpenGL backend), logging why instead of silently pretending shaders are active.</p>
  */
-public class PipelineManager {
+public class PipelineManager implements ShaderEngine {
 	private static final Logger LOGGER = LoggerFactory.getLogger("Tapetum Shaders");
 
 	private RenderingPipeline current = VanillaRenderingPipeline.INSTANCE;
+	private Throwable lastFailure;
+
+	@Override
+	public String name() {
+		return "native Tapetum screen-space engine";
+	}
 
 	public RenderingPipeline getPipeline() {
 		return current;
@@ -74,29 +81,29 @@ public class PipelineManager {
 	 * Re-evaluates which pipeline should be active based on the current config and shaderpack
 	 * selection. Call this after the selection changes in the GUI, or on startup.
 	 */
+	@Override
 	public void reload() {
-		RenderingPipeline previous = current;
-		current = VanillaRenderingPipeline.INSTANCE;
-		try {
-			if (previous != null) {
-				previous.destroy();
-			}
-		} catch (RuntimeException error) {
-			LOGGER.error("Failed to destroy the previous pipeline while reloading; falling back to vanilla rendering",
-				error);
-		}
-		try {
-			ShaderEngine engine = TapetumShaders.getShaderEngine();
-			engine.reload();
-			current = engine;
-		} catch (IOException | RuntimeException error) {
-			LOGGER.error("Shader engine failed to reload; keeping vanilla rendering", error);
-		}
+		lastFailure = null;
+		reloadNativeScreenSpacePipeline();
 	}
 
-	/** Historical prototype retained for regression research, never selected in the shipped client. */
-	@SuppressWarnings("unused")
-	private void reloadExperimentalScreenSpacePipeline() {
+	@Override
+	public void syncSelection() {
+		// Tapetum owns the selection and reads it directly from TapetumConfig.
+	}
+
+	@Override
+	public Optional<Throwable> lastFailure() {
+		return Optional.ofNullable(lastFailure);
+	}
+
+	@Override
+	public Optional<Screen> openPackOptions(Screen parent) {
+		return Optional.empty();
+	}
+
+	/** Native Tapetum pipeline. Geometry and shadow stages are added behind this boundary. */
+	private void reloadNativeScreenSpacePipeline() {
 		RenderingPipeline previous = current;
 		current = VanillaRenderingPipeline.INSTANCE;
 		try {
@@ -124,6 +131,7 @@ public class PipelineManager {
 			try {
 				current = buildPipeline(pack);
 			} catch (RuntimeException e) {
+				lastFailure = e;
 				// Distinguish this from a close() failure: attributing a pipeline-construction crash
 				// to "failed to close the handle" sends anyone reading the log the wrong way entirely.
 				LOGGER.error("Failed to build a rendering pipeline for '{}' - falling back to vanilla rendering",
