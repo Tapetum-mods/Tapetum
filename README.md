@@ -2,9 +2,12 @@
 
 # Tapetum Shaders
 
-A Fabric shaderpack interface using the embedded [Iris](https://github.com/IrisShaders/Iris)
-rendering engine and an externally installed Sodium. Iris is credited and retains its own mod ID.
-The user authorized this integration on 2026-09-14; no separate Iris installation is needed.
+A Fabric shaderpack interface with a versioned, clean-room Tapetum rendering engine and an
+externally installed Sodium. The current releases still contain a temporary legacy Iris backend
+while the native engine replaces its geometry, shadow and post-processing stages.
+
+Tapetum will not copy, rename, or present Iris code as Tapetum code. Third-party backends remain
+clearly identified, licensed and isolated behind the `ShaderEngine` contract.
 
 ## Links
 

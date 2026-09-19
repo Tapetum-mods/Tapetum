@@ -1,21 +1,22 @@
 package dev.tapetum.shaders.compat.iris;
 
 import dev.tapetum.shaders.TapetumShaders;
-import dev.tapetum.shaders.pipeline.RenderingPipeline;
+import dev.tapetum.shaders.pipeline.ShaderEngine;
 import net.irisshaders.iris.Iris;
 import net.irisshaders.iris.api.v0.IrisApi;
 import java.io.IOException;
 import java.util.Objects;
 
-/** The embedded engine owns all world/shadow passes; Tapetum only controls selection and UI. */
-public final class IrisRenderingBridge implements RenderingPipeline {
+/** Legacy compatibility backend isolated behind {@link ShaderEngine}. */
+public final class IrisRenderingBridge implements ShaderEngine {
     public static final IrisRenderingBridge INSTANCE = new IrisRenderingBridge();
     private static boolean started;
     private static Throwable lastFailure;
 
     private IrisRenderingBridge() {}
 
-    public static void applySelection() throws IOException {
+    @Override
+    public void reload() throws IOException {
         lastFailure = null;
         var engine = Iris.getIrisConfig();
         if (engine == null) throw new IllegalStateException("The embedded Iris engine has not initialized");
@@ -38,12 +39,14 @@ public final class IrisRenderingBridge implements RenderingPipeline {
         TapetumShaders.LOGGER.error("Embedded shader engine failed", error);
     }
 
-    public static java.util.Optional<Throwable> getLastFailure() {
+    @Override
+    public java.util.Optional<Throwable> lastFailure() {
         return java.util.Optional.ofNullable(lastFailure);
     }
 
     /** Also persist selections/toggles made through Iris's options or its native keybindings. */
-    public static void syncSelectionFromEngine() {
+    @Override
+    public void syncSelection() {
         if (!started || Iris.getIrisConfig() == null) return;
         var engine = Iris.getIrisConfig();
         var config = TapetumShaders.getConfig();
@@ -66,5 +69,17 @@ public final class IrisRenderingBridge implements RenderingPipeline {
     public boolean isShaderPackActive() {
         return IrisApi.getInstance().isShaderPackInUse() && !Iris.isFallback()
             && TapetumShaders.getConfig().getShaderPackName().filter(Iris.getCurrentPackName()::equals).isPresent();
+    }
+
+    public static void applySelection() throws IOException {
+        INSTANCE.reload();
+    }
+
+    public static java.util.Optional<Throwable> getLastFailure() {
+        return INSTANCE.lastFailure();
+    }
+
+    public static void syncSelectionFromEngine() {
+        INSTANCE.syncSelection();
     }
 }

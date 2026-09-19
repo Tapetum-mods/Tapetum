@@ -1,0 +1,19 @@
+package dev.tapetum.shaders.pipeline;
+
+import java.io.IOException;
+import java.util.Optional;
+
+/**
+ * Engine boundary for Tapetum's shaderpack runtime.
+ *
+ * <p>The renderer and UI depend on this contract, never on a third-party engine API. The current
+ * Iris adapter is a temporary compatibility backend; the native Tapetum engine will implement the
+ * same contract as its geometry, shadow and post-processing stages become production-ready.</p>
+ */
+public interface ShaderEngine extends RenderingPipeline {
+	void reload() throws IOException;
+
+	void syncSelection();
+
+	Optional<Throwable> lastFailure();
+}
