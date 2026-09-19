@@ -4,6 +4,7 @@ import dev.tapetum.shaders.TapetumShaders;
 import dev.tapetum.shaders.pipeline.ShaderEngine;
 import net.irisshaders.iris.Iris;
 import net.irisshaders.iris.api.v0.IrisApi;
+import net.minecraft.client.gui.screens.Screen;
 import java.io.IOException;
 import java.util.Objects;
 
@@ -42,6 +43,18 @@ public final class IrisRenderingBridge implements ShaderEngine {
     @Override
     public java.util.Optional<Throwable> lastFailure() {
         return java.util.Optional.ofNullable(lastFailure);
+    }
+
+    @Override
+    public java.util.Optional<Screen> openPackOptions(Screen parent) {
+        if (Iris.getCurrentPack().isEmpty()
+                || !Objects.equals(TapetumShaders.getConfig().getShaderPackName().orElse(null),
+                Iris.getCurrentPackName())) {
+            return java.util.Optional.empty();
+        }
+        var options = new net.irisshaders.iris.gui.screen.ShaderPackScreen(parent);
+        ((dev.tapetum.shaders.mixin.IrisShaderPackScreenAccess) options).tapetum$openOptions(true);
+        return java.util.Optional.of(options);
     }
 
     /** Also persist selections/toggles made through Iris's options or its native keybindings. */

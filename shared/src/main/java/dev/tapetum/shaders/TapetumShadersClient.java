@@ -13,6 +13,6 @@ public class TapetumShadersClient implements ClientModInitializer {
             TapetumShaders.LOGGER.info("Rendering through embedded Iris {}", net.irisshaders.iris.Iris.getVersion());
             TapetumShaders.getPipelineManager().reload();
         });
-        ClientTickEvents.END_CLIENT_TICK.register(client -> IrisRenderingBridge.syncSelectionFromEngine());
+        ClientTickEvents.END_CLIENT_TICK.register(client -> TapetumShaders.getShaderEngine().syncSelection());
     }
 }

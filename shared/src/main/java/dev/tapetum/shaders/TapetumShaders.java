@@ -2,6 +2,8 @@ package dev.tapetum.shaders;
 
 import dev.tapetum.shaders.config.TapetumConfig;
 import dev.tapetum.shaders.pipeline.PipelineManager;
+import dev.tapetum.shaders.pipeline.ShaderEngine;
+import dev.tapetum.shaders.compat.iris.IrisRenderingBridge;
 import dev.tapetum.shaders.shaderpack.ShaderpackManager;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.api.ModInitializer;
@@ -27,6 +29,7 @@ public class TapetumShaders implements ModInitializer {
 	private static TapetumConfig config;
 	private static ShaderpackManager shaderpackManager;
 	private static PipelineManager pipelineManager;
+	private static ShaderEngine shaderEngine;
 
 	@Override
 	public void onInitialize() {
@@ -41,6 +44,7 @@ public class TapetumShaders implements ModInitializer {
 		shaderpackManager = new ShaderpackManager(SHADERPACKS_DIR);
 		shaderpackManager.refresh();
 
+		shaderEngine = IrisRenderingBridge.INSTANCE;
 		pipelineManager = new PipelineManager();
 
 		LOGGER.info("Tapetum Shaders initialized. Found {} shaderpack(s) in {}",
@@ -61,6 +65,10 @@ public class TapetumShaders implements ModInitializer {
 
 	public static PipelineManager getPipelineManager() {
 		return pipelineManager;
+	}
+
+	public static ShaderEngine getShaderEngine() {
+		return shaderEngine;
 	}
 
 	/**

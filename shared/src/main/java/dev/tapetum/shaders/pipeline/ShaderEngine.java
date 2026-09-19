@@ -2,6 +2,7 @@ package dev.tapetum.shaders.pipeline;
 
 import java.io.IOException;
 import java.util.Optional;
+import net.minecraft.client.gui.screens.Screen;
 
 /**
  * Engine boundary for Tapetum's shaderpack runtime.
@@ -16,4 +17,6 @@ public interface ShaderEngine extends RenderingPipeline {
 	void syncSelection();
 
 	Optional<Throwable> lastFailure();
+
+	Optional<Screen> openPackOptions(Screen parent);
 }

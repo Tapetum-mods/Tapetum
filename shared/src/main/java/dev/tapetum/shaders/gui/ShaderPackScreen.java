@@ -154,12 +154,10 @@ public class ShaderPackScreen extends Screen {
 		packSettingsButton = this.addRenderableWidget(
 			Button.builder(Component.translatable("tapetumshaders.gui.pack_settings"), button -> {
 					if (hasPendingChanges() && !applyChanges()) return;
-					if (net.irisshaders.iris.Iris.getCurrentPack().isEmpty()
-						|| !Objects.equals(packList.getSelectedPackName(), net.irisshaders.iris.Iris.getCurrentPackName())) return;
-					var options = new net.irisshaders.iris.gui.screen.ShaderPackScreen(this);
-					((dev.tapetum.shaders.mixin.IrisShaderPackScreenAccess) options).tapetum$openOptions(true);
-					returningFromEngine = true;
-					this.minecraft.setScreenAndShow(options);
+					TapetumShaders.getShaderEngine().openPackOptions(this).ifPresent(options -> {
+						returningFromEngine = true;
+						this.minecraft.setScreenAndShow(options);
+					});
 				})
 				.bounds(actionRightX, actionRowY, actionWidth, BUTTON_HEIGHT)
 				.build());
