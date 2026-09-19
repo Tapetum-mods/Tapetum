@@ -5,7 +5,8 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "MixinIrisKeybinds",
-    "IrisShaderPackScreenAccess"
+    "IrisShaderPackScreenAccess",
+    "MixinIrisFeatureValidation"
   ],
   "injectors": {
     "defaultRequire": 1
