@@ -5,16 +5,46 @@ removing a runtime dependency does not change the provenance of existing code.
 
 ## Branches
 
+Tapetum follows the version-named branch organization visible in
+[Iris](https://github.com/IrisShaders/Iris/branches): Minecraft version lines, a `future`
+branch and short-lived development branches. The routing rules below are Tapetum's policy;
+this does not introduce any Iris or Sodium dependency.
+
 | Branch | Purpose |
 |---|---|
-| `26.1` | Default branch and Minecraft 26.1 line |
+| `26.1` | Default branch; Minecraft 26.1 line, currently targeting 26.1.2 |
 | `26.2` | Minecraft 26.2 line |
+| `26.3` | Experimental Minecraft 26.3 OpenGL port |
 | `future` | Cross-version work that is not ready for a release line |
-| `main` | Existing integration branch; do not use it for version-specific fixes |
+| `main` | Retained legacy integration branch; not the default or a version line |
 
 A change that only affects one Minecraft version goes to that version's branch.
 Develop cross-version changes on `future`, then backport or merge them into each affected line.
 Use a separate `feature/*`, `fix/*`, or `hotfix/*` branch for non-trivial work.
+
+Create a work branch from its intended target, for example:
+
+```sh
+git fetch origin
+git switch -c fix/26.3-render-state origin/26.3
+```
+
+Open the pull request against `26.3` in this example, not against the default branch.
+For a shared change, start from `origin/future` and target `future`; track follow-up pull
+requests for each affected version line. Existing pull requests keep their current targets
+unless explicitly retargeted after review. Do not merge a version branch into another merely
+to synchronize names: inspect API changes and test each affected artifact first.
+
+These are Git development lines, not separate single-module source trees. Tapetum retains its
+multi-module build (`common`, `shared`, `mc26.*`); adding a branch does not remove other adapters
+or automatically synchronize their histories. Older branches can lag behind development work.
+In particular, the new `26.3` line starts from the existing native-engine/26.3 port work.
+
+Create historical version branches only when an actual port is being developed. Do not create
+empty `1.16.5` through `1.21.x` branches to imply compatibility. Branch names and successful
+builds are not release or visual-validation claims; see [version status](docs/VERSION-SUPPORT.md).
+Keep existing branches and history; no force-push, deletion, automatic merge or release tag is
+part of adopting this layout.
 
 ## Pull requests and releases
 

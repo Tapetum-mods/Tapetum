@@ -2,8 +2,12 @@
 
 - [ ] `26.1`
 - [ ] `26.2`
+- [ ] `26.3` experimental
 - [ ] `future`
-- [ ] `main` integration only
+- [ ] `main` legacy integration only
+
+Choose the affected Minecraft line, or `future` for shared development. Do not use the default
+branch automatically. See [branch policy](../CONTRIBUTING.md#branches).
 
 ## Change type
 
@@ -16,7 +20,8 @@
 
 - [ ] `./gradlew clean build --console=plain`
 - [ ] Focused regression tests, if applicable
-- [ ] Changes were applied to every affected version branch
+- [ ] Backport or forward-port pull requests are linked for other affected version branches,
+      or the reason they are not needed is documented
 
 ## Notes
 

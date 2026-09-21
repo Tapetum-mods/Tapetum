@@ -39,6 +39,15 @@ See [the rendering checkpoint](docs/RENDERING-CHECKPOINT.md) for measured result
 and [contribution instructions](CONTRIBUTING.md) for building the open-source project.
 These builds do not establish compatibility with every pack, GPU, or older Minecraft version.
 
+## Development branches
+
+Version lines are named `26.1` (default, targeting 26.1.2), `26.2` and `26.3` (experimental).
+Shared development uses `future`, with `feature/*`, `fix/*` and `hotfix/*` work branches.
+`main` is retained for existing integration history. This organization is inspired by
+[Iris's branch layout](https://github.com/IrisShaders/Iris/branches), not its runtime dependencies.
+See [branch and pull-request rules](CONTRIBUTING.md#branches). A branch's existence does not
+establish Minecraft or shaderpack compatibility, and older lines may lag behind development.
+
 ## Historical Prototype Notes
 
 Everything below records earlier prototypes and dependency choices. The current status above

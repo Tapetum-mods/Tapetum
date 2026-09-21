@@ -19,6 +19,10 @@
 
 ### Changed
 
+- Aligned the GitHub branch policy with Iris's version-named layout: keep `26.1` as default,
+  add the experimental `26.3` line, and retain `26.2`, `future` and existing `main` history.
+- Documented work-branch targets and explicit backport/forward-port tracking in the pull request
+  template. No historical compatibility branches, runtime dependency changes or releases are implied.
 - Added an experimental Minecraft 26.3 OpenGL module, adapting RenderPearl package changes,
   platform actions and render-hook signatures without replacing Mojang's GL state cache.
 - Added headless camera-history tests, exact render-hook signature checks and GL bridge linkage checks.
