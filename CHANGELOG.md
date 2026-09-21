@@ -19,6 +19,8 @@
 
 ### Changed
 
+- Removed obsolete root-level guidance files and consolidated maintainer testing and launcher-import
+  procedures in CONTRIBUTING.md. Preserved licensing, attribution and technical verification records.
 - Added a phased Eclipse/Gradle import check using the IDE's original initialization scripts,
   complementing annotation-processor model checks. Documented stale Buildship diagnostic recovery
   separately from successful terminal builds; editor verification is still required.

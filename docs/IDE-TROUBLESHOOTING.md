@@ -23,7 +23,7 @@ After restoring the scripts, use **Java: Reload Projects** in the editor's comma
 confirm the restart and wait for the project import to finish. Restarting the language server
 alone can reload persisted error markers without performing a fresh Gradle synchronization.
 These commands are documented by [the Java extension](https://github.com/redhat-developer/vscode-java#commands).
-An assistant must not operate the editor or launch applications without permission.
+Do not operate the editor or launch applications without the maintainer's permission.
 
 Prefer checking the complete bundle rather than repairing files one error at a time:
 

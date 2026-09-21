@@ -65,8 +65,8 @@ The complete clean build was subsequently rerun successfully with the restored J
 script passed explicitly via `--init-script`. The IDE failure referenced a missing temporary
 resource, not invalid Kotlin build code. Its bytes were recovered from the installed extension
 only after matching the filename's SHA-256. The repair helper passed seven tests (14 assertions).
-See IDE-TROUBLESHOOTING.md; the editor still needs to refresh its import, which was not controlled
-or visually checked by the assistant.
+See IDE-TROUBLESHOOTING.md; at this checkpoint the editor still needed to refresh its import.
+No desktop interaction or visual verification was performed.
 
 The source directory is again `~/Desktop/Tapetum Shaders/Mods`. The old Downloads path no longer
 exists. Neither complete geometry/shadow rendering nor real pack appearance has been validated.

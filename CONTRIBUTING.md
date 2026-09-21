@@ -74,6 +74,9 @@ production artifact. No Iris/Sodium artifact may enter compile/runtime classpath
 The latter inspect Minecraft bytecode and the built artifacts and exercise camera math without starting a client.
 `compileGlTestJava` only compiles GPU tests. `glRegressionTest` and `runClient` need an actual
 graphics context and are not part of build; do not run them on the maintainer's Mac without consent.
+On that Mac, use terminal-only builds and headless checks. Do not control desktop applications,
+open Minecraft or other windows, or use GUI/browser automation without renewed explicit permission.
+The maintainer performs in-game visual checks.
 
 For rendering changes, record the exact game, pack, driver, options and dimensions actually tested.
 Compilation is not a visual acceptance test. Do not advertise universal compatibility or change a
@@ -88,3 +91,19 @@ Managed installations need launcher registration as well as correct file bytes. 
 registered JAR via rsync and assume it is installed: Modrinth may mark it as requiring re-import.
 Use the launcher import workflow for replacements; do not edit its internal database. Retain backups
 outside `mods` and leave saves, pack settings and unrelated mods unchanged.
+
+After a runtime code update, compile and run the relevant tests, then prepare the production JARs
+for launcher import. The current profile mapping is:
+
+| Artifact | Modrinth profile folder | Actual game version |
+|---|---|---|
+| `mc26.1/build/libs/tapetum-shaders-0.1.0+mc26.1.2.jar` | `Tapetum` | 26.1.2 |
+| `mc26.2/build/libs/tapetum-shaders-0.1.0+mc26.2.jar` | `Tapetum 26.1.2` | 26.2 |
+
+Profiles are under `~/Library/Application Support/ModrinthApp/profiles/`. Verify the actual game
+version and artifact metadata before each import; folder names are not reliable version labels.
+Direct filesystem addition or replacement of managed JARs is prohibited for these profiles.
+Do not retry an rsync-only installation or rewrite `app.db`. If the supported import requires
+the desktop application, provide verified artifacts for the maintainer to import instead.
+Verify installed hashes when available and restart Minecraft to load an updated JAR. Neither a
+successful build nor installation establishes complete shaderpack rendering compatibility.
