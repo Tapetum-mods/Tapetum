@@ -1,3 +1,4 @@
+// Historical integration, excluded from all production and test source sets.
 package dev.tapetum.shaders.pipeline.backend.gl;
 
 import com.mojang.blaze3d.opengl.GlStateManager;

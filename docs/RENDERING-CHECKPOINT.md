@@ -1,4 +1,46 @@
-# Rendering checkpoint: 2026-09-15
+# Rendering checkpoint: 2026-09-21
+
+## Standalone Update (Current)
+
+The user now requires no Iris or Sodium dependency. Both active modules compile against Minecraft
+and Fabric only, with native Tapetum screen-space rendering. The old Sodium integration, packed
+vertex adapter and dependent tests are archived outside all source sets. The Iris-era sections
+below are historical, not the current implementation or verification state.
+
+Restored native O/K controls and the vanilla Video Settings entry. Bytecode inspection found three
+addSmall invocations; the picker hook now targets only the preferences section (ordinal 2), avoiding
+duplicate entries. Shader UI now labels active processing as experimental, not a faithful full render.
+Runtime/compile failures are retained for the UI error tooltip. Production JARs include the license;
+separate source JARs are generated for both versions. The existing license/provenance is preserved.
+
+Verified without launching Minecraft or opening a window:
+
+`./gradlew clean build :mc26.1:compileGlTestJava :mc26.2:compileGlTestJava --offline --no-build-cache --console=plain`
+
+The clean build caught a changed chat API; after correction, `build` plus both compileGlTestJava
+tasks passed. 230 common unit tests passed (zero failures/errors/skips); the four Sodium-specific
+tests were retired, not skipped. Headless artifact/API checks: 84 for 26.1.2, 88 for 26.2. Existing
+Gradle deprecations remain. GPU tests were compiled only, never executed.
+
+The complete clean build was subsequently rerun successfully with the restored JDT LS init
+script passed explicitly via `--init-script`. The IDE failure referenced a missing temporary
+resource, not invalid Kotlin build code. Its bytes were recovered from the installed extension
+only after matching the filename's SHA-256. The repair helper passed seven tests (14 assertions).
+See IDE-TROUBLESHOOTING.md; the editor still needs to refresh its import, which was not controlled
+or visually checked by the assistant.
+
+The source directory is again `~/Desktop/Tapetum Shaders/Mods`. The old Downloads path no longer
+exists. Neither complete geometry/shadow rendering nor real pack appearance has been validated.
+See NATIVE-RENDERER.md for the remaining implementation, not just a testing checklist.
+
+Modrinth targets were rechecked via read-only database queries and game logs: folder `Tapetum`
+is game 26.1.2; folder `Tapetum 26.1.2` is game 26.2. Both currently contain Fabric API only.
+The safety review rejected direct file installation even for new filenames, due to managed-store
+integrity risks. No profile, database, save, or external mod was changed. Production/source JARs
+are ready in the module build/libs folders; import the production JARs through Modrinth manually.
+`tools/verify-modrinth-import.rb` checks the prepared artifacts and targets without writing anything.
+
+## Historical Notes
 
 ## Embedded Engine Update
 

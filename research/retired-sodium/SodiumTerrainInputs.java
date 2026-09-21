@@ -1,3 +1,4 @@
+// Historical decoder, excluded from the standalone engine build.
 package dev.tapetum.shaders.shaderpack.glsl;
 
 /**

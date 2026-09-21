@@ -2,13 +2,9 @@
 
 # Tapetum Shaders
 
-A Fabric shaderpack interface with a versioned, clean-room Tapetum rendering engine and an
-externally installed Sodium. The current releases select the native Tapetum screen-space backend.
-A temporary legacy Iris backend remains packaged only during the migration while Tapetum replaces
-its geometry, shadow and post-processing stages.
-
-Tapetum will not copy, rename, or present Iris code as Tapetum code. Third-party backends remain
-clearly identified, licensed and isolated behind the `ShaderEngine` contract.
+An open-source Fabric shader engine with no Iris or Sodium dependency. Tapetum uses its own
+screen-space backend on Minecraft's renderer. This is an experimental foundation, not a complete
+replacement for a mature world shader renderer. Existing license and attribution notices remain.
 
 ## Links
 
@@ -17,28 +13,30 @@ clearly identified, licensed and isolated behind the `ShaderEngine` contract.
 
 ## Current status
 
-The active builds target Minecraft **26.1.2 and 26.2**, with **Iris 1.11.4 and Sodium 0.9.2**.
-Tapetum delegates world geometry, shadows, deferred/composite passes and pack settings to Iris.
-The old screen-space renderer is no longer registered in the shipped client.
+The active builds target Minecraft **26.1.2 and 26.2**, using Fabric and Java 25.
+Neither Iris nor Sodium is required, linked, or bundled. Small Fabric API modules are embedded.
+Use the production JAR matching the actual Minecraft version, not a profile's display name.
+The `O` key opens Tapetum's picker, `K` toggles processing, and vanilla Video Settings contains
+one Shaderpacks entry. The `-sources.jar` artifacts are for development, not the mods folder.
 
-Use the JAR matching the Minecraft version, with Sodium installed. Keep any old external Iris
-JAR disabled. The `O` key opens Tapetum's picker; native Iris pack options are available from it.
-An unsupported hardware feature is an error, not a successful activation or an approximated image.
-Mellow 3.4's default colored-light option requires CUSTOM_IMAGES, unavailable on this Mac;
-the integration does not silently change the author's settings or pretend that feature works.
+The current pipeline runs deferred/composite/final passes on approximate scene inputs.
+It does **not** draw shaderpack world geometry or real shadow maps. An active post-processing
+chain is not proof of the pack's intended appearance; the UI labels it experimental.
+Pack options, full dimension handling, terrain/entity passes and accurate G-buffers remain work
+for the native renderer. See [the native rendering roadmap](docs/NATIVE-RENDERER.md).
 
 Build and headless verification: `./gradlew build --offline --no-build-cache --console=plain`.
-This includes unit tests and embedded-engine archive/API checks, without opening Minecraft.
+This includes unit tests and standalone-engine archive/API checks, without opening Minecraft.
 The user does in-game visual verification. Do not run GUI or GPU harnesses without new permission.
 
 See [the rendering checkpoint](docs/RENDERING-CHECKPOINT.md) for measured results and limitations,
-and the project documentation for the native engine architecture and provenance.
+and [contribution instructions](CONTRIBUTING.md) for building the open-source project.
 These builds do not establish compatibility with every pack, GPU, or older Minecraft version.
 
 ## Historical Prototype Notes
 
-Everything below documents the earlier independent renderer, not the active embedded engine.
-Its listed rendering limitations and old verification claims must not be read as current behavior.
+Everything below records earlier prototypes and dependency choices. The current status above
+supersedes these historical claims, including the old requirement to install Sodium.
 What's here:
 
 - A Fabric mod that builds and loads: `fabric.mod.json`, mixin config, client/main entrypoints.

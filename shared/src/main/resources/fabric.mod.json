@@ -3,14 +3,14 @@
   "id": "tapetumshaders",
   "version": "${version}",
   "name": "Tapetum Shaders",
-  "description": "Independent Tapetum shader engine for OptiFine-format shaderpacks. Requires Sodium.",
+  "description": "Experimental open-source Tapetum shader engine. Full world shader rendering is still in development.",
   "authors": [
     "Raik"
   ],
   "contact": {
-    "homepage": "https://github.com/raik-fr/Tapetum-Shaders",
-    "sources": "https://github.com/raik-fr/Tapetum-Shaders",
-    "issues": "https://github.com/raik-fr/Tapetum-Shaders/issues"
+    "homepage": "https://github.com/Tapetum-mods/Tapetum",
+    "sources": "https://github.com/Tapetum-mods/Tapetum",
+    "issues": "https://github.com/Tapetum-mods/Tapetum/issues"
   },
   "license": "LGPL-3.0-only",
   "environment": "client",
@@ -28,7 +28,6 @@
   "depends": {
     "fabricloader": ">=0.19.3",
     "minecraft": "~${minecraftVersion}",
-    "java": ">=25",
-    "sodium": ">=0.9.2 <0.10"
+    "java": ">=25"
   }
 }

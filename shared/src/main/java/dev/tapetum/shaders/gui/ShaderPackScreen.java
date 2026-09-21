@@ -271,7 +271,7 @@ public class ShaderPackScreen extends Screen {
 
 		if (TapetumShaders.getPipelineManager().getPipeline().isShaderPackActive()) {
 			return Component.translatable("tapetumshaders.gui.status.active", appliedPack)
-				.withStyle(ChatFormatting.GREEN);
+				.withStyle(ChatFormatting.YELLOW);
 		}
 
 		return Component.translatable("tapetumshaders.gui.status.failed", appliedPack)

@@ -10,7 +10,6 @@ import dev.tapetum.shaders.shaderpack.glsl.GbufferVertexAdapter;
 import dev.tapetum.shaders.shaderpack.glsl.GlslCompatPatcher;
 import dev.tapetum.shaders.shaderpack.glsl.GlslIncludeException;
 import dev.tapetum.shaders.shaderpack.glsl.ShaderMacros;
-import dev.tapetum.shaders.shaderpack.glsl.SodiumTerrainInputs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +74,7 @@ public final class GbufferCompileAudit {
 
 			Sources sources;
 			try {
-				sources = read(pack, actual, macros, dimension, isTerrain(wanted));
+				sources = read(pack, actual, macros, dimension);
 			} catch (IOException | GlslIncludeException e) {
 				failed.add(wanted.programName());
 				LOGGER.warn("'{}': could not read {} ({})", pack.getName(), wanted.programName(),
@@ -93,8 +92,7 @@ public final class GbufferCompileAudit {
 			}
 
 			try (GlProgram program = GlProgram.link(
-					pack.getName() + '/' + wanted.programName(), sources.vertex(), sources.fragment(),
-					isTerrain(wanted) ? SodiumTerrainInputs.ATTRIBUTE_BINDINGS : java.util.Map.of())) {
+					pack.getName() + '/' + wanted.programName(), sources.vertex(), sources.fragment())) {
 				compiled.add(wanted.programName());
 				required.addAll(program.activeUniforms());
 				LOGGER.debug("'{}': {} links, writing to {}", pack.getName(), wanted.programName(),
@@ -133,14 +131,9 @@ public final class GbufferCompileAudit {
 
 	public record Result(int compiled, List<String> failed) {}
 
-	private static boolean isTerrain(GbufferProgram program) {
-		return program == GbufferProgram.TERRAIN || program == GbufferProgram.TERRAIN_SOLID
-			|| program == GbufferProgram.WATER;
-	}
-
 	/** The adapted pair, or null when the pack ships a fragment stage with no vertex half. */
 	private static Sources read(ShaderPack pack, GbufferProgram program, ShaderMacros macros,
-			ShaderDimension dimension, boolean terrain) throws IOException, GlslIncludeException {
+			ShaderDimension dimension) throws IOException, GlslIncludeException {
 		Optional<String> fragment = pack.readCompilableProgramSource(
 			program.fragmentFile(), GlslCompatPatcher.Stage.FRAGMENT, dimension, macros);
 		Optional<String> vertex = pack.readCompilableProgramSource(
@@ -149,8 +142,7 @@ public final class GbufferCompileAudit {
 			return null;
 		}
 
-		String adapted = terrain ? GbufferVertexAdapter.adaptForSodiumTerrain(vertex.get())
-			: GbufferVertexAdapter.adapt(vertex.get());
+		String adapted = GbufferVertexAdapter.adapt(vertex.get());
 		return new Sources(
 			PipelineManager.alignVersions(adapted, fragment.get(), program.programName()),
 			fragment.get());

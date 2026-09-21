@@ -7,9 +7,8 @@ import net.minecraft.client.gui.screens.Screen;
 /**
  * Engine boundary for Tapetum's shaderpack runtime.
  *
- * <p>The renderer and UI depend on this contract, never on a third-party engine API. The current
- * Iris adapter is a temporary compatibility backend; the native Tapetum engine will implement the
- * same contract as its geometry, shadow and post-processing stages become production-ready.</p>
+ * <p>The renderer and UI depend on this contract, never on a third-party engine API.
+ * Geometry and shadow drawing are not implemented by the current screen-space backend.</p>
  */
 public interface ShaderEngine extends RenderingPipeline {
 	String name();

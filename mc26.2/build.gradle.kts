@@ -10,7 +10,6 @@ plugins {
 // ever read by this script.
 val minecraftVersion = project.property("mc262_minecraft") as String
 val fabricApiVersion = project.property("mc262_fabricApi") as String
-val sodiumVersion = project.property("mc262_sodium") as String
 val fabricLoaderVersion = project.property("fabricLoaderVersion") as String
 val modVersion = project.property("modVersion") as String
 val mavenGroup = project.property("mavenGroup") as String
@@ -28,14 +27,9 @@ java {
 }
 
 repositories {
-    flatDir { dirs(rootProject.file("third_party/iris")) }
     maven {
         name = "Fabric"
         url = uri("https://maven.fabricmc.net/")
-    }
-    maven {
-        name = "CaffeineMC"
-        url = uri("https://maven.caffeinemc.net/releases")
     }
     mavenCentral()
 }
@@ -65,10 +59,6 @@ dependencies {
     embedFabricApiModule("fabric-key-mapping-api-v1")
     embedFabricApiModule("fabric-lifecycle-events-v1")
 
-    // Compiled against but never shipped: Sodium is a hard dependency declared in fabric.mod.json,
-    // so the player installs it themselves rather than receiving a bundled copy that would collide
-    // with theirs. compileOnly is therefore correct here - required at runtime, absent from the jar.
-    compileOnly("net.caffeinemc:sodium-fabric:$sodiumVersion")
 }
 
 loom {
@@ -93,22 +83,29 @@ tasks.withType<JavaCompile>().configureEach {
 
 tasks.jar {
     from(project(":common").sourceSets.main.get().output)
+    from(rootProject.file("LICENSE")) { into("META-INF/licenses/tapetum") }
 }
+
+val standaloneSources = tasks.register<Jar>("standaloneSourcesJar") {
+    archiveClassifier.set("sources")
+    from(sourceSets.main.get().allSource)
+    from(project(":common").sourceSets.main.get().allSource)
+    from(rootProject.file("LICENSE"))
+}
+tasks.assemble { dependsOn(standaloneSources) }
 
 tasks.processResources {
     // Captured here, at configuration time: reading project.* from inside the task action below
     // runs at execution time, which is deprecated and incompatible with the configuration cache.
     val modJsonVersion = project.version.toString()
-    val modJsonSodiumVersion = sodiumVersion.substringBefore("+")
 
     inputs.property("version", modJsonVersion)
-    inputs.property("sodiumVersion", sodiumVersion)
+    inputs.property("minecraftVersion", minecraftVersion)
 
     filesMatching("fabric.mod.json") {
         expand(mapOf(
             "version" to modJsonVersion,
-            "minecraftVersion" to minecraftVersion,
-            "sodiumVersion" to modJsonSodiumVersion
+            "minecraftVersion" to minecraftVersion
         ))
     }
 }
@@ -151,9 +148,6 @@ tasks.register<JavaExec>("glRegressionTest") {
     classpath = glTest.runtimeClasspath
     mainClass.set("dev.tapetum.shaders.pipeline.backend.gl.GlRegressionTest")
     systemProperty("tapetum.test.minecraftVersion", minecraftVersion)
-    providers.gradleProperty("sodiumTestJar262").orNull?.let { installedJar ->
-        classpath = files(glTest.runtimeClasspath.filter { !it.name.startsWith("sodium-fabric-") }, installedJar)
-    }
     workingDir(layout.buildDirectory.dir("gl-regression").get().asFile)
     doFirst { workingDir.mkdirs() }
     javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(25)) })

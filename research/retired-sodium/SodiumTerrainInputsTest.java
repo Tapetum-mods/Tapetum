@@ -1,3 +1,4 @@
+// Historical decoder tests, excluded from the standalone engine build.
 package dev.tapetum.shaders.shaderpack.glsl;
 
 import org.junit.jupiter.api.Test;

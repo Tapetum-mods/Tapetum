@@ -1,8 +1,9 @@
-# Contributing to Tapetum
+# Contributing
+
+Tapetum is open source under the existing LGPL-3.0-only license. Preserve attribution notices;
+removing a runtime dependency does not change the provenance of existing code.
 
 ## Branches
-
-Tapetum follows the same versioned-branch model as Iris:
 
 | Branch | Purpose |
 |---|---|
@@ -11,24 +12,49 @@ Tapetum follows the same versioned-branch model as Iris:
 | `future` | Cross-version work that is not ready for a release line |
 | `main` | Existing integration branch; do not use it for version-specific fixes |
 
-A change that only affects one Minecraft version goes directly to that version's branch.
-A change that is shared by multiple versions should be developed on `future`, then backported
-or merged into each affected version branch.
+A change that only affects one Minecraft version goes to that version's branch.
+Develop cross-version changes on `future`, then backport or merge them into each affected line.
+Use a separate `feature/*`, `fix/*`, or `hotfix/*` branch for non-trivial work.
 
-## Pull requests
+## Pull requests and releases
 
-- Target the oldest affected version branch first.
-- Keep version-specific Minecraft API changes out of `common/` and shared code when possible.
-- Run `./gradlew clean build --console=plain` before opening a pull request.
-- Do not merge a change into `26.2` and assume that `26.1` receives it automatically.
-- Use a separate `feature/*`, `fix/*`, or `hotfix/*` branch for non-trivial work.
+- Target the oldest affected version branch first when preparing version-line pull requests.
+- Keep version-specific Minecraft APIs out of `common/` and shared code where possible.
+- Run `./gradlew clean build --console=plain` and focused regression tests before opening a pull request.
+- Merging into `26.2` does not update `26.1` automatically.
+- Merge after review, then tag releases from the corresponding version branch.
+- Keep `26.1` as the repository default branch.
 
-## Release flow
+## Build
 
-1. Open a pull request against the affected version branch.
-2. Run the full clean build and the focused regression tests.
-3. Merge the pull request after review.
-4. Tag releases from the corresponding version branch.
+Use Java 25 for Minecraft modules and the checked-in Gradle wrapper:
 
-The branch `26.1` remains the repository default so GitHub opens the active supported line by
-default, matching Iris's repository layout.
+```sh
+./gradlew build --console=plain
+```
+
+With dependencies already cached, add `--offline --no-build-cache`. Artifacts are in
+`mc26.1/build/libs/` and `mc26.2/build/libs/`. Each directory contains a production JAR and a
+`-sources.jar` containing the version-specific, shared and common sources. Install only the
+production artifact. No Iris/Sodium artifact may enter compile/runtime classpaths or production JARs.
+
+## Testing
+
+`build` runs common JUnit tests and headless native-engine contract checks for both versions.
+The latter inspect Minecraft bytecode and the built artifacts without initializing the game.
+`compileGlTestJava` only compiles GPU tests. `glRegressionTest` and `runClient` need an actual
+graphics context and are not part of build; do not run them on the maintainer's Mac without consent.
+
+For rendering changes, record the exact game, pack, driver, options and dimensions actually tested.
+Compilation is not a visual acceptance test. Do not advertise universal compatibility or change a
+pack's authored visual settings silently to make a test pass.
+
+For a missing IDE-generated Gradle initialization script, see
+[IDE troubleshooting](docs/IDE-TROUBLESHOOTING.md). Do not disable imports or Java diagnostics to hide it.
+
+## Modrinth
+
+Managed installations need launcher registration as well as correct file bytes. Do not overwrite a
+registered JAR via rsync and assume it is installed: Modrinth may mark it as requiring re-import.
+Use the launcher import workflow for replacements; do not edit its internal database. Retain backups
+outside `mods` and leave saves, pack settings and unrelated mods unchanged.

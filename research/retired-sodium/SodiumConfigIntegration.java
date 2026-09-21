@@ -1,3 +1,4 @@
+// Historical integration, excluded from all production and test source sets.
 package dev.tapetum.shaders.compat.sodium;
 
 import dev.tapetum.shaders.TapetumShaders;

@@ -44,26 +44,13 @@ public final class GbufferVertexAdapter {
 
 	/** Rewrites the fixed-function names and prepends the declarations they need. */
 	public static String adapt(String source) {
-		return adapt(source, false);
-	}
-
-	/**
-	 * Reads Sodium's compact terrain attributes instead of uncompressed vanilla inputs.
-	 * This covers the base mesh only: normals, tangents and material IDs still need an extended
-	 * mesh. It is not a substitute for connecting the terrain draw calls and their render targets.
-	 */
-	public static String adaptForSodiumTerrain(String source) {
-		return adapt(source, true);
-	}
-
-	private static String adapt(String source, boolean sodium) {
 		FixedFunctionRewriter rewriter = new FixedFunctionRewriter(source);
-		String position = sodium ? "tapetum_terrainPosition()" : "tapetum_Position";
-		String uv = sodium ? "tapetum_terrainUV()" : "tapetum_UV0";
-		String light = sodium ? "tapetum_terrainLight()" : "tapetum_UV1";
-		String positionDeclaration = sodium ? null : "in vec3 tapetum_Position;";
-		String uvDeclaration = sodium ? null : "in vec2 tapetum_UV0;";
-		String lightDeclaration = sodium ? null : "in vec2 tapetum_UV1;";
+		String position = "tapetum_Position";
+		String uv = "tapetum_UV0";
+		String light = "tapetum_UV1";
+		String positionDeclaration = "in vec3 tapetum_Position;";
+		String uvDeclaration = "in vec2 tapetum_UV0;";
+		String lightDeclaration = "in vec2 tapetum_UV1;";
 		String colorDeclaration = "in vec4 tapetum_Color;";
 
 		// ftransform() is the full transform chain. It expands to the gl_ names rather than straight
@@ -110,10 +97,6 @@ public final class GbufferVertexAdapter {
 			.rewriteUnlessDeclared("vaColor", "tapetum_Color", colorDeclaration)
 			.rewriteUnlessDeclared("vaUV0", uv, uvDeclaration)
 			.apply();
-
-		if (sodium) {
-			SodiumTerrainInputs.declare(rewriter);
-		}
 
 		return rewriter.finish("gbuffers vertex adapter");
 	}

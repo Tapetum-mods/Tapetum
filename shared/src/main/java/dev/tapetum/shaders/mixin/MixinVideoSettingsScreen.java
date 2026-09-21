@@ -31,7 +31,7 @@ public abstract class MixinVideoSettingsScreen extends Screen {
 
 	@ModifyArg(
 		method = "addOptions",
-		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/OptionsList;addSmall([Lnet/minecraft/client/OptionInstance;)V"),
+		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/OptionsList;addSmall([Lnet/minecraft/client/OptionInstance;)V", ordinal = 2),
 		index = 0
 	)
 	private OptionInstance<?>[] tapetum$appendShaderpacksEntry(OptionInstance<?>[] vanillaOptions) {

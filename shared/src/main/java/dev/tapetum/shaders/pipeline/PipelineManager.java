@@ -68,6 +68,7 @@ public class PipelineManager implements ShaderEngine {
 		try {
 			current.finalizeLevelRendering();
 		} catch (RuntimeException e) {
+			lastFailure = e;
 			RenderingPipeline failed = current;
 			current = VanillaRenderingPipeline.INSTANCE;
 			LOGGER.error("Shader rendering failed; shaders disabled until the next reload", e);
@@ -142,6 +143,7 @@ public class PipelineManager implements ShaderEngine {
 			var loaded = TapetumShaders.getShaderpackManager().load(packName);
 
 			if (loaded.isEmpty()) {
+				lastFailure = new IOException("Selected shaderpack could not be loaded: " + packName);
 				LOGGER.warn("Selected shaderpack '{}' could not be loaded", packName);
 				return;
 			}
@@ -277,6 +279,7 @@ public class PipelineManager implements ShaderEngine {
 				prepared.stream().map(CompositeChainPipeline.PassSource::name).toList(), bufferCount);
 			return pipeline;
 		} catch (GlShaderCompileException e) {
+			lastFailure = e;
 			LOGGER.error("Failed to compile the program chain from '{}'", pack.getName(), e);
 			return VanillaRenderingPipeline.INSTANCE;
 		}

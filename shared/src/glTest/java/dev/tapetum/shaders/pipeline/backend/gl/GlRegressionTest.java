@@ -63,13 +63,6 @@ public final class GlRegressionTest {
                 run("invalid MRT rejected", GlRegressionTest::invalidOutputs, failures);
                 run("float viewport uniforms", GlRegressionTest::viewportUniforms, failures);
                 run("failed pipeline falls back once", GlRegressionTest::pipelineFailure, failures);
-                run("Sodium terrain pixels in 256 sections", SodiumTerrainGlTest::pixels, failures);
-                run("private GLSL 150 pack and incomplete-pair fallback", SodiumTerrainGlTest::privatePack, failures);
-                String packs = System.getenv("TAPETUM_SHADERPACK_TEST_DIR");
-                if (packs != null && !packs.isBlank()) {
-                    run("installed packs on actual driver (all dimensions)",
-                        () -> SodiumTerrainGlTest.installedPacks(java.nio.file.Path.of(packs)), failures);
-                }
             } finally {
                 if (window != 0) GLFW.glfwDestroyWindow(window);
                 GLFW.glfwTerminate();

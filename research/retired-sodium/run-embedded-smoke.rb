@@ -1,3 +1,4 @@
+abort('Retired Iris/Sodium harness. Do not run against the standalone Tapetum engine.')
 require 'json'
 require 'fileutils'
 require 'timeout'
