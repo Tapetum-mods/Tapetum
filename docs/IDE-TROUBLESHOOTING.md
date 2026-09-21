@@ -18,8 +18,10 @@ Gradle resources; seven were missing, while the main and annotation-processing s
 
 ## Recovery
 
-Use **Java: Restart Java Language Server**, then refresh the project in the editor.
-If the cached import still fails, use **Java: Clean Java Language Server Workspace**.
+After restoring the scripts, use **Java: Reload Projects** in the editor's command palette
+(`Cmd+Shift+P` on macOS). If the error remains, use **Java: Clean Java Language Server Workspace**,
+confirm the restart and wait for the project import to finish. Restarting the language server
+alone can reload persisted error markers without performing a fresh Gradle synchronization.
 These commands are documented by [the Java extension](https://github.com/redhat-developer/vscode-java#commands).
 An assistant must not operate the editor or launch applications without permission.
 
@@ -74,6 +76,43 @@ Use JDK 21 and the Gradle 9.7.1 wrapper distribution directory for these variabl
 `--parallel` deliberately reproduces the original locking failure and is a negative regression test.
 
 ## Headless verification
+
+`CheckIdeImport.java` checks the annotation-processor model only. It does not exercise the
+phased Eclipse model import named in the missing-script error. Use `CheckIdePhasedImport.java`
+for that additional check, supplying every `--init-script` path from the affected workspace's
+`org.eclipse.buildship.core.prefs` in the same order. Read that file without editing the IDE cache.
+
+```sh
+"$JAVA_HOME/bin/javac" -cp "$GRADLE_HOME/lib/*" -d .gradle/ide-import-check tools/CheckIdePhasedImport.java
+"$JAVA_HOME/bin/java" -cp ".gradle/ide-import-check:$GRADLE_HOME/lib/*" \
+  CheckIdePhasedImport . /absolute/main-init.gradle /absolute/protobuf-init.gradle /absolute/other-init.gradle
+```
+
+The script paths above are placeholders; use the actual hash-named files. Compile this helper
+before running it because Gradle must deserialize its build-action classes in a separate process.
+It queries both phases and resolves Eclipse models/classpaths, without starting the editor or
+Minecraft. It does not replace Buildship's workspace synchronization or clear its diagnostics.
+
+### September 21 follow-up
+
+- The reported Protobuf script (`52cde0cf...`) was present and byte-identical to the installed
+  extension resource. Batch verification restored a separate missing Scala support resource.
+- The five init scripts in the cached Buildship preferences imported all five projects through
+  the phased Tooling API: root, common, mc26.1, mc26.2 and mc26.3. All external classpath files existed.
+- Annotation-processor model discovery also passed for all five projects.
+- A negative test with a nonexistent, isolated script path reproduced the same
+  `Could not run phased build action` / `does not exist` failure. No real IDE script was removed.
+- Before the reload completed, the persisted root-project `.markers` file contained the old
+  missing-Protobuf error and the cached project list had no mc26.3 entry. The user still saw the
+  error during this interval. At 19:01:17, the IDE logged `Projects updated in 101091 ms` and
+  mc26.3 appeared in its workspace, without a new missing-script error. Wait for import completion
+  before judging Reload Projects. A clean workspace is the fallback only if the diagnostic remains.
+- A `.markers` snapshot alone does not establish a live diagnostic: Eclipse can record newer
+  changes in `.markers.snap`. Verify the editor's Problems view; do not manually remove either file.
+
+Do not delete `.markers`, rewrite Buildship preferences, suppress diagnostics or edit the build
+just to hide this error. Until the editor performs a fresh successful import, report the IDE result
+as unverified even when terminal model checks pass.
 
 ```sh
 ruby tools/repair-java-gradle-init-test.rb

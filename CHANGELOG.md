@@ -19,6 +19,9 @@
 
 ### Changed
 
+- Added a phased Eclipse/Gradle import check using the IDE's original initialization scripts,
+  complementing annotation-processor model checks. Documented stale Buildship diagnostic recovery
+  separately from successful terminal builds; editor verification is still required.
 - Aligned the GitHub branch policy with Iris's version-named layout: keep `26.1` as default,
   add the experimental `26.3` line, and retain `26.2`, `future` and existing `main` history.
 - Documented work-branch targets and explicit backport/forward-port tracking in the pull request
