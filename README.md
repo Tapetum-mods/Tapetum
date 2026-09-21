@@ -13,7 +13,7 @@ replacement for a mature world shader renderer. Existing license and attribution
 
 ## Current status
 
-The active builds target Minecraft **26.1.2 and 26.2**, using Fabric and Java 25.
+The active experimental builds target Minecraft **26.1.2, 26.2 and 26.3**, using Fabric and Java 25.
 Neither Iris nor Sodium is required, linked, or bundled. Small Fabric API modules are embedded.
 Use the production JAR matching the actual Minecraft version, not a profile's display name.
 The `O` key opens Tapetum's picker, `K` toggles processing, and vanilla Video Settings contains
@@ -22,8 +22,14 @@ one Shaderpacks entry. The `-sources.jar` artifacts are for development, not the
 The current pipeline runs deferred/composite/final passes on approximate scene inputs.
 It does **not** draw shaderpack world geometry or real shadow maps. An active post-processing
 chain is not proof of the pack's intended appearance; the UI labels it experimental.
-Pack options, full dimension handling, terrain/entity passes and accurate G-buffers remain work
+The three vanilla dimensions now select their own program chains; world changes rebuild targets
+and reset camera history. Custom `dimension.properties` mappings are not implemented yet.
+Pack options, terrain/entity passes and accurate G-buffers remain work
 for the native renderer. See [the native rendering roadmap](docs/NATIVE-RENDERER.md).
+
+The requested **1.16.5 through 26.3** range is a development target, not a supported-version claim.
+See [version status](docs/VERSION-SUPPORT.md). The 26.3 adapter supports the OpenGL backend only;
+Vulkan activation is rejected explicitly. None of these changes establishes faithful pack rendering.
 
 Build and headless verification: `./gradlew build --offline --no-build-cache --console=plain`.
 This includes unit tests and standalone-engine archive/API checks, without opening Minecraft.

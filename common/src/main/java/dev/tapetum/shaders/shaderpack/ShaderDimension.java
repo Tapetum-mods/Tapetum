@@ -29,4 +29,11 @@ public enum ShaderDimension {
 	public String folderName() {
 		return folderName;
 	}
+
+	/** Legacy worldN mapping; modded dimensions use world0 unless a pack defines its own mapping. */
+	public static ShaderDimension fromDimensionId(String id) {
+		if ("minecraft:the_nether".equals(id)) return NETHER;
+		if ("minecraft:the_end".equals(id)) return END;
+		return OVERWORLD;
+	}
 }

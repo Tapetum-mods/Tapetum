@@ -12,12 +12,25 @@ On September 21, 2026, the missing `db3b08fc...` script matched the SHA-256 of
 The extension was referencing a deleted temporary resource. The log does not establish
 what deleted it. Changing Gradle dependencies or creating an empty script is not a fix.
 
+A later import revealed that the Protobuf script (`52cde0cf...`) was also missing. Restoring
+only the first reported file was insufficient. The batch recovery below checks all nine bundled
+Gradle resources; seven were missing, while the main and annotation-processing scripts already existed.
+
 ## Recovery
 
 Use **Java: Restart Java Language Server**, then refresh the project in the editor.
 If the cached import still fails, use **Java: Clean Java Language Server Workspace**.
 These commands are documented by [the Java extension](https://github.com/redhat-developer/vscode-java#commands).
 An assistant must not operate the editor or launch applications without permission.
+
+Prefer checking the complete bundle rather than repairing files one error at a time:
+
+```sh
+ruby tools/repair-java-gradle-init.rb /absolute/path/to/org.eclipse.jdt.ls.core_<version>.jar --all
+```
+
+Existing exact copies are verified and left untouched. All destinations are checked before any
+missing file is created; a conflicting file or symlink aborts the repair. No extension is patched.
 
 For terminal-only recovery of the missing file, use the installed extension's original resource:
 
@@ -36,12 +49,36 @@ Refresh the Java project afterward; successful command-line compilation alone do
 an already displayed IDE diagnostic. Temporary-file restoration is recovery, not an upstream
 fix for whatever removed the file.
 
+## Gradle 9 import locking
+
+After restoring the files, a separate error appeared at line 88 of `gradle/apt/init.gradle`:
+
+```text
+Resolution of the configuration ':common:annotationProcessor' was attempted without an exclusive lock.
+```
+
+This is the [JDT LS parallel-import bug](https://github.com/eclipse-jdtls/eclipse.jdt.ls/issues/3807).
+`gradle.properties` now defaults to `org.gradle.parallel=false`. This keeps dependency discovery,
+annotation processing, imports and diagnostics enabled; no exception is swallowed. The trade-off is
+serial project builds. CLI-only builds may opt into `--parallel`; IDE imports should not do so until
+the upstream model builder is fixed. Do not patch the extension's hash-named script to hide errors.
+
+`tools/CheckIdeImport.java` replays the actual annotation-processor tooling model, not a normal build:
+
+```sh
+"$JAVA_HOME/bin/java" --class-path "$GRADLE_HOME/lib/*" tools/CheckIdeImport.java \
+  . /absolute/path/from/the/error/<apt-script-sha256>.gradle
+```
+
+Use JDK 21 and the Gradle 9.7.1 wrapper distribution directory for these variables. Appending
+`--parallel` deliberately reproduces the original locking failure and is a negative regression test.
+
 ## Headless verification
 
 ```sh
 ruby tools/repair-java-gradle-init-test.rb
 ./gradlew help --offline --init-script /absolute/path/from/the/error/<sha256>.gradle
-./gradlew clean build :mc26.1:compileGlTestJava :mc26.2:compileGlTestJava --offline --no-build-cache --console=plain
+./gradlew clean build :mc26.1:compileGlTestJava :mc26.2:compileGlTestJava :mc26.3:compileGlTestJava --offline --no-build-cache --console=plain
 ```
 
 Do not downgrade Gradle, suppress Java errors, or disable Gradle imports for this symptom.

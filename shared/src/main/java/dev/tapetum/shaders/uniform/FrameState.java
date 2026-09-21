@@ -25,6 +25,9 @@ public final class FrameState {
 	private static final Matrix4f projectionInverse = new Matrix4f();
 	private static final Matrix4f modelView = new Matrix4f();
 	private static final Matrix4f modelViewInverse = new Matrix4f();
+	private static final Matrix4f candidateProjectionInverse = new Matrix4f();
+	private static final Matrix4f candidateModelViewInverse = new Matrix4f();
+	private static boolean hasHistory;
 
 	/** Last frame's matrices, which packs use for motion vectors and temporal accumulation. */
 	private static final Matrix4f previousProjection = new Matrix4f();
@@ -58,6 +61,11 @@ public final class FrameState {
 	private FrameState() {
 	}
 
+	/** The next valid frame starts a new timeline, without motion from a different world or pack. */
+	public static void resetHistory() {
+		hasHistory = false;
+	}
+
 	/**
 	 * Records this frame's state. The previous frame's values are rolled over first, so a pack asking
 	 * for {@code gbufferPreviousModelView} gets the frame before this one rather than a copy of it.
@@ -69,9 +77,15 @@ public final class FrameState {
 		// every arithmetic path in every pass downstream, which surfaces as a black or garbage frame
 		// with nothing in the log. Keeping the last good frame is visibly better than that, and this
 		// can legitimately happen for a frame or two while the camera is still being set up.
-		if (!isFinite(frameProjection) || !isFinite(frameModelView)) {
+		if (!isFinite(frameProjection) || !isFinite(frameModelView)
+				|| camera == null || !Double.isFinite(camera.x) || !Double.isFinite(camera.y)
+				|| !Double.isFinite(camera.z)) {
 			return;
 		}
+		frameProjection.invert(candidateProjectionInverse);
+		frameModelView.invert(candidateModelViewInverse);
+		// A finite matrix can still be singular. Validate both inverses before changing any state.
+		if (!isFinite(candidateProjectionInverse) || !isFinite(candidateModelViewInverse)) return;
 
 		previousProjection.set(projection);
 		previousModelView.set(modelView);
@@ -81,14 +95,20 @@ public final class FrameState {
 		modelView.set(frameModelView);
 		// Inverted once per frame rather than once per pass: a chain is fifteen passes deep and the
 		// matrices do not change between them.
-		projection.invert(projectionInverse);
-		modelView.invert(modelViewInverse);
+		projectionInverse.set(candidateProjectionInverse);
+		modelViewInverse.set(candidateModelViewInverse);
 
 		cameraPosition = camera;
+		if (!hasHistory) {
+			previousProjection.set(projection);
+			previousModelView.set(modelView);
+			previousCameraPosition = cameraPosition;
+			hasHistory = true;
+		}
 		// Guarded because packs divide by (far - near) to linearise depth; equal or inverted planes
 		// would hand every one of them a division by zero.
-		near = nearPlane > 0.0f ? nearPlane : 0.05f;
-		far = farPlane > near ? farPlane : near + 1.0f;
+		near = Float.isFinite(nearPlane) && nearPlane > 0.0f && nearPlane < Float.MAX_VALUE ? nearPlane : 0.05f;
+		far = Float.isFinite(farPlane) && farPlane > near ? farPlane : Math.max(near + 1.0f, Math.nextUp(near));
 		eyeInWater = fogType;
 
 		if (frameFogColor != null) {

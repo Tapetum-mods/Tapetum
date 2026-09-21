@@ -1,6 +1,45 @@
 # Rendering checkpoint: 2026-09-21
 
-## Standalone Update (Current)
+## 26.3 and IDE Import Update (Current)
+
+Added an experimental 26.3 OpenGL build with Loom 1.17.20 and Fabric API 0.161.0+26.3.
+RenderPearl's relocated device/texture/state types and the changed LevelRenderer descriptor are
+handled by version-local compatibility code. The state alias delegates to Mojang's existing cache.
+Vulkan is detected and rejected with an activation error; it is not implemented by this port.
+
+Native rendering now selects the vanilla dimension's chain, rebuilds targets when the ClientLevel
+instance changes, releases targets on disconnect and resets camera history before the next capture.
+Finite matrices with singular inverses no longer poison uniform state. Custom dimension mappings,
+authored geometry, shadow drawing and full visual fidelity remain unfinished.
+
+The first IDE repair restored only the reported main script. A subsequent actual IDE import exposed
+a missing Protobuf init script and then JDT LS issue #3807 (cross-project AP resolution without a
+Gradle 9 lock). Batch restoration verified two scripts and restored seven others byte-for-byte.
+Parallel builds are now disabled by default. CheckIdeImport reproduced the failure with --parallel
+and successfully fetched the annotation-processor model for all five projects with the default
+serial configuration. No editor settings, caches or extension implementation were patched.
+The IDE's displayed diagnostic was not visually checked; refresh/restart remains a user action.
+
+Final verification:
+
+```sh
+./gradlew clean build :mc26.1:compileGlTestJava :mc26.2:compileGlTestJava :mc26.3:compileGlTestJava --offline --no-build-cache --console=plain --init-script <restored-main-script>
+ruby tools/repair-java-gradle-init-test.rb
+```
+
+- Clean build succeeded: 33 tasks executed; 234 JUnit tests, no failures/errors/skips.
+- Native artifact/hook/GL-linkage checks: 212 (26.1.2), 216 (26.2), 215 (26.3).
+- Pure frame-state math: 13 checks on each of the three versions.
+- Repair helper: 10 tests, 23 assertions, no failures/errors/skips.
+- Production and source ZIP integrity checked for all three versions.
+- Existing JOML dependency warnings and Gradle deprecation warnings remain.
+- GPU harnesses compiled only. No GUI, Minecraft client or GPU test was launched.
+- No Modrinth profile was modified; 26.1.2/26.2 targets verified read-only, no 26.3 profile selected.
+
+The requested 1.16.5-26.3 range is not complete. VERSION-SUPPORT.md distinguishes the actual built
+artifacts from missing legacy ports. All current artifacts still have experimental post-processing.
+
+## Standalone Update (Earlier on 2026-09-21)
 
 The user now requires no Iris or Sodium dependency. Both active modules compile against Minecraft
 and Fabric only, with native Tapetum screen-space rendering. The old Sodium integration, packed

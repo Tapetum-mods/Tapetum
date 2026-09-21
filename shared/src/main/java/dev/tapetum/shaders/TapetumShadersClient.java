@@ -23,7 +23,8 @@ public class TapetumShadersClient implements ClientModInitializer {
             TapetumShaders.LOGGER.info("Rendering through {}", TapetumShaders.getShaderEngine().name());
             TapetumShaders.getPipelineManager().reload();
         });
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+		ClientTickEvents.END_CLIENT_TICK.register(client -> {
+			TapetumShaders.getShaderEngine().syncSelection();
             while (open.consumeClick()) {
                 if (client.player != null) client.setScreenAndShow(new ShaderPackScreen(null));
             }

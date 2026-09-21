@@ -106,6 +106,18 @@ class ShaderProgramChainTest {
 	}
 
 	@Test
+	void discoversDistinctChainsForAllVanillaDimensions(@TempDir Path root) throws Exception {
+		try (ShaderPack pack = packWith(root, "world0/composite.fsh", "world-1/deferred2.fsh", "world1/final.fsh")) {
+			assertEquals(List.of("composite"), names(ShaderProgramChain.discover(pack,
+				ShaderDimension.fromDimensionId("minecraft:overworld"))));
+			assertEquals(List.of("deferred2"), names(ShaderProgramChain.discover(pack,
+				ShaderDimension.fromDimensionId("minecraft:the_nether"))));
+			assertEquals(List.of("final"), names(ShaderProgramChain.discover(pack,
+				ShaderDimension.fromDimensionId("minecraft:the_end"))));
+		}
+	}
+
+	@Test
 	void reportsNothingForAPackWithNoScreenSpacePrograms(@TempDir Path root) throws Exception {
 		// gbuffers alone is not a chain this class can schedule - it must not invent a final pass.
 		try (ShaderPack pack = packWith(root, "world0/gbuffers_terrain.fsh")) {

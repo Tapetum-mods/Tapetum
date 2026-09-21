@@ -1,6 +1,5 @@
 package dev.tapetum.shaders.pipeline;
 
-import com.mojang.blaze3d.opengl.GlTexture;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import dev.tapetum.shaders.compat.VersionCompat;
 import dev.tapetum.shaders.TapetumShaders;
@@ -209,9 +208,8 @@ public final class CompositeChainPipeline implements RenderingPipeline {
 		// pass reading colortex1 for what it expects to be gbuffer data would compute on nothing. The
 		// scene is not what those buffers should hold - that needs the gbuffers programs - but it is
 		// real data rather than a void, so passes produce a recognisable image instead of darkness.
-		int sceneTexture = 0;
-		if (mainTarget.getColorTexture() instanceof GlTexture scene) {
-			sceneTexture = scene.glId();
+		int sceneTexture = VersionCompat.colorTextureId(mainTarget);
+		if (sceneTexture != 0) {
 			for (int index = 0; index < targets.bufferCount(); index++) {
 				targets.captureSceneInto(index, sceneTexture);
 			}
@@ -229,8 +227,8 @@ public final class CompositeChainPipeline implements RenderingPipeline {
 			trace.append("\n  colortex0 texture ").append(targets.describeTexture(targets.readTexture(0)));
 			trace.append("\n  capture           ").append(targets.describeCapture(sceneTexture));
 			trace.append("\n  depthtex0         ").append(
-				VersionCompat.mainRenderTarget().getDepthTexture() instanceof GlTexture depth
-					? targets.describeDepth(depth.glId()) : "absent");
+				VersionCompat.depthTextureId(mainTarget) != 0
+					? targets.describeDepth(VersionCompat.depthTextureId(mainTarget)) : "absent");
 			trace.append("\n  minecraft scene   ").append(describePixel(sceneTexture));
 			trace.append("\n  colortex0 seeded  ").append(describePixel(targets.readTexture(0)));
 		}
@@ -333,12 +331,13 @@ public final class CompositeChainPipeline implements RenderingPipeline {
 	 * ({@code final} → {@code DRAWBUFFERS:0} in all five).</p>
 	 */
 	private void presentResult(RenderTarget mainTarget) {
-		if (!(mainTarget.getColorTexture() instanceof GlTexture destination)) {
+		int destination = VersionCompat.colorTextureId(mainTarget);
+		if (destination == 0) {
 			// A non-OpenGL backend; PipelineManager refuses to build this pipeline for one, so this
 			// only guards that check being loosened later.
 			return;
 		}
-		targets.presentTo(0, destination.glId());
+		targets.presentTo(0, destination);
 	}
 
 	/** Runs one pass into every buffer it declares, and publishes them for the next one. */
@@ -452,7 +451,8 @@ public final class CompositeChainPipeline implements RenderingPipeline {
 	 * @return the next free texture unit
 	 */
 	private int bindDepthSamplers(GlProgram program, int firstUnit) {
-		if (!(VersionCompat.mainRenderTarget().getDepthTexture() instanceof GlTexture depth)) {
+		int depth = VersionCompat.depthTextureId(VersionCompat.mainRenderTarget());
+		if (depth == 0) {
 			return firstUnit;
 		}
 
@@ -461,7 +461,7 @@ public final class CompositeChainPipeline implements RenderingPipeline {
 			if (unit >= GlProgram.maxTextureUnits()) {
 				return unit;
 			}
-			if (program.bindSampler(name, unit, depth.glId())) {
+			if (program.bindSampler(name, unit, depth)) {
 				unit++;
 			}
 		}

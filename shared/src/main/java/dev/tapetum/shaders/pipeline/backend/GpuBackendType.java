@@ -1,8 +1,6 @@
 package dev.tapetum.shaders.pipeline.backend;
 
-import com.mojang.blaze3d.systems.GpuDevice;
 import dev.tapetum.shaders.compat.VersionCompat;
-import com.mojang.blaze3d.systems.RenderSystem;
 
 import java.util.Locale;
 import java.util.Optional;
@@ -10,9 +8,8 @@ import java.util.Optional;
 /**
  * Which GPU backend Blaze3D is actually running on, as reported by the device (through
  * {@link VersionCompat#backendName}, since where that name lives moved between Minecraft versions).
- * Only {@link #OPENGL} is reachable in practice today (see the package docs for why), but reading
- * this instead of hardcoding OpenGL assumptions is what lets the pipeline pick up a future
- * {@link #VULKAN} backend without a rewrite once Mojang ships one.
+ * Minecraft 26.3 can use Vulkan, but Tapetum's current pipeline only implements OpenGL.
+ * Detecting the active device lets the UI reject an unsupported backend explicitly.
  */
 public enum GpuBackendType {
 	OPENGL,
@@ -20,15 +17,15 @@ public enum GpuBackendType {
 	UNKNOWN;
 
 	/**
-	 * Returns the active backend, or empty if called before Blaze3D has set up a {@link GpuDevice}
+	 * Returns the active backend, or empty if called before Minecraft has set up its device
 	 * (e.g. during mod init, which runs before the render device exists).
 	 */
 	public static Optional<GpuBackendType> detectActive() {
-		GpuDevice device = RenderSystem.tryGetDevice();
-		if (device == null) {
+		String backend = VersionCompat.backendName();
+		if (backend == null) {
 			return Optional.empty();
 		}
-		return Optional.of(fromBackendName(VersionCompat.backendName(device)));
+		return Optional.of(fromBackendName(backend));
 	}
 
 	static GpuBackendType fromBackendName(String backendName) {

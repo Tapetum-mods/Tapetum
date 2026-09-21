@@ -113,7 +113,7 @@ tasks.processResources {
 // Headless archive/API checks never start Minecraft or initialize OpenGL.
 val contractTest = sourceSets.create("contractTest") {
     java.srcDir(rootProject.file("shared/src/contractTest/java"))
-    compileClasspath += sourceSets.main.get().compileClasspath
+    compileClasspath += sourceSets.main.get().output + sourceSets.main.get().compileClasspath
     runtimeClasspath += output + compileClasspath
 }
 dependencies {

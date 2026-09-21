@@ -1,6 +1,6 @@
 package dev.tapetum.shaders.pipeline.backend.gl;
 
-import com.mojang.blaze3d.opengl.GlStateManager;
+import dev.tapetum.shaders.compat.GlStateManager;
 import dev.tapetum.shaders.shaderpack.glsl.ColorTextureFormat;
 import org.lwjgl.opengl.GL21;
 import org.lwjgl.opengl.GL31;

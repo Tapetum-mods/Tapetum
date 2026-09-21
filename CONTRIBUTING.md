@@ -34,14 +34,14 @@ Use Java 25 for Minecraft modules and the checked-in Gradle wrapper:
 ```
 
 With dependencies already cached, add `--offline --no-build-cache`. Artifacts are in
-`mc26.1/build/libs/` and `mc26.2/build/libs/`. Each directory contains a production JAR and a
+`mc26.1/build/libs/`, `mc26.2/build/libs/` and `mc26.3/build/libs/`. Each directory contains a production JAR and a
 `-sources.jar` containing the version-specific, shared and common sources. Install only the
 production artifact. No Iris/Sodium artifact may enter compile/runtime classpaths or production JARs.
 
 ## Testing
 
-`build` runs common JUnit tests and headless native-engine contract checks for both versions.
-The latter inspect Minecraft bytecode and the built artifacts without initializing the game.
+`build` runs common JUnit tests and headless native-engine contract checks for all three active versions.
+The latter inspect Minecraft bytecode and the built artifacts and exercise camera math without starting a client.
 `compileGlTestJava` only compiles GPU tests. `glRegressionTest` and `runClient` need an actual
 graphics context and are not part of build; do not run them on the maintainer's Mac without consent.
 

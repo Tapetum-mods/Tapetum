@@ -16,7 +16,7 @@ import dev.tapetum.shaders.shaderpack.uniform.CustomUniforms;
 import dev.tapetum.shaders.shaderpack.glsl.FullScreenVertexAdapter;
 import dev.tapetum.shaders.shaderpack.glsl.DrawBuffers;
 import dev.tapetum.shaders.shaderpack.ShaderProgramChain;
-import com.mojang.blaze3d.opengl.GlStateManager;
+import dev.tapetum.shaders.compat.GlStateManager;
 import dev.tapetum.shaders.shaderpack.glsl.GlslCompatPatcher;
 import dev.tapetum.shaders.shaderpack.glsl.GlslIncludeException;
 import dev.tapetum.shaders.shaderpack.glsl.ShaderMacros;
@@ -28,6 +28,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Optional;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import dev.tapetum.shaders.uniform.FrameState;
 
 /**
  * Owns the currently active {@link RenderingPipeline} and swaps it whenever the selected
@@ -43,6 +46,7 @@ public class PipelineManager implements ShaderEngine {
 
 	private RenderingPipeline current = VanillaRenderingPipeline.INSTANCE;
 	private Throwable lastFailure;
+	private ClientLevel renderingLevel;
 
 	@Override
 	public String name() {
@@ -55,6 +59,10 @@ public class PipelineManager implements ShaderEngine {
 
 	@Override
 	public void beginLevelRendering() {
+		// A new world instance also invalidates history when its dimension key is unchanged.
+		if (Minecraft.getInstance().level != renderingLevel) {
+			reload();
+		}
 		current.beginLevelRendering();
 	}
 
@@ -84,6 +92,8 @@ public class PipelineManager implements ShaderEngine {
 	public void destroy() {
 		RenderingPipeline pipeline = current;
 		current = VanillaRenderingPipeline.INSTANCE;
+		renderingLevel = null;
+		FrameState.resetHistory();
 		if (pipeline != null && pipeline != VanillaRenderingPipeline.INSTANCE) {
 			pipeline.destroy();
 		}
@@ -104,12 +114,17 @@ public class PipelineManager implements ShaderEngine {
 	@Override
 	public void reload() {
 		lastFailure = null;
+		renderingLevel = Minecraft.getInstance().level;
+		FrameState.resetHistory();
 		reloadNativeScreenSpacePipeline();
 	}
 
 	@Override
 	public void syncSelection() {
-		// Tapetum owns the selection and reads it directly from TapetumConfig.
+		// No render callback runs after disconnect, so release world-owned targets from the tick.
+		if (renderingLevel != null && Minecraft.getInstance().level == null) {
+			destroy();
+		}
 	}
 
 	@Override
@@ -201,19 +216,21 @@ public class PipelineManager implements ShaderEngine {
 	private RenderingPipeline buildPipeline(ShaderPack pack) {
 		GpuBackendType backend = getActiveBackend();
 		if (backend != GpuBackendType.OPENGL) {
+			lastFailure = new UnsupportedOperationException("Tapetum currently requires OpenGL; active backend: " + backend);
 			LOGGER.warn("'{}' selected, but the active GPU backend ({}) isn't OpenGL - this build only knows how "
 				+ "to compile GLSL through the OpenGL-specific path - vanilla rendering will be used",
 				pack.getName(), backend);
 			return VanillaRenderingPipeline.INSTANCE;
 		}
 
-		List<ShaderProgramChain.Pass> chain =
-			ShaderProgramChain.discover(pack, ShaderDimension.OVERWORLD);
+		ShaderDimension dimension = ShaderDimension.fromDimensionId(renderingLevel == null ? null
+			: renderingLevel.dimension().identifier().toString());
+		List<ShaderProgramChain.Pass> chain = ShaderProgramChain.discover(pack, dimension);
 
 		if (chain.isEmpty()) {
 			LOGGER.info("'{}' selected ({} properties parsed) but ships no screen-space programs in '{}/' or at "
 				+ "the shaders root - vanilla rendering will be used", pack.getName(),
-				pack.getProperties().size(), ShaderDimension.OVERWORLD.folderName());
+				pack.getProperties().size(), dimension.folderName());
 			return VanillaRenderingPipeline.INSTANCE;
 		}
 
@@ -228,7 +245,7 @@ public class PipelineManager implements ShaderEngine {
 			Optional<String> fragment;
 			try {
 				fragment = pack.readCompilableProgramSource(
-					pass.fragment(), GlslCompatPatcher.Stage.FRAGMENT, ShaderDimension.OVERWORLD, macros);
+					pass.fragment(), GlslCompatPatcher.Stage.FRAGMENT, dimension, macros);
 			} catch (IOException e) {
 				LOGGER.error("Failed to read '{}' from '{}'", pass.fragment(), pack.getName(), e);
 				return VanillaRenderingPipeline.INSTANCE;
@@ -246,7 +263,7 @@ public class PipelineManager implements ShaderEngine {
 			}
 
 			String fragmentSource = fragment.get();
-			String vertexSource = packVertexShader(pack, pass, macros)
+			String vertexSource = packVertexShader(pack, pass, macros, dimension)
 				.orElseGet(() -> GlslStageLinkage.buildFullScreenVertexShader(
 					fragmentSource, GlslStageLinkage.declaredVersion(fragmentSource)));
 			vertexSource = alignVersions(vertexSource, fragmentSource, pass.name());
@@ -266,7 +283,7 @@ public class PipelineManager implements ShaderEngine {
 
 		// Compile-only, and deliberately before the chain is built: if a gbuffers program is what
 		// finally takes the driver down, the log says so above the line that says the chain is ready.
-		GbufferCompileAudit.run(pack, macros, ShaderDimension.OVERWORLD);
+		GbufferCompileAudit.run(pack, macros, dimension);
 
 		try {
 			RenderingPipeline pipeline =
@@ -316,10 +333,10 @@ public class PipelineManager implements ShaderEngine {
 	 * generator stays right for a pass that genuinely ships no vertex half.</p>
 	 */
 	private static Optional<String> packVertexShader(ShaderPack pack, ShaderProgramChain.Pass pass,
-			ShaderMacros macros) {
+			ShaderMacros macros, ShaderDimension dimension) {
 		try {
 			return pack.readCompilableProgramSource(
-					pass.vertex(), GlslCompatPatcher.Stage.VERTEX, ShaderDimension.OVERWORLD, macros)
+					pass.vertex(), GlslCompatPatcher.Stage.VERTEX, dimension, macros)
 				.map(FullScreenVertexAdapter::adapt);
 		} catch (IOException | GlslIncludeException e) {
 			LOGGER.warn("Could not use '{}' from '{}' ({}); generating a vertex stage instead",

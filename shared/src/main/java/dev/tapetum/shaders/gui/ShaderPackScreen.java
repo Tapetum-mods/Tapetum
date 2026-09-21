@@ -8,7 +8,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.Util;
+import dev.tapetum.shaders.compat.VersionCompat;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -127,7 +127,7 @@ public class ShaderPackScreen extends Screen {
 			.build());
 
 		this.addRenderableWidget(Button.builder(Component.translatable("tapetumshaders.gui.download_shaders"),
-				button -> Util.getPlatform().openUri(SHADER_DOWNLOAD_URL))
+				button -> VersionCompat.openUri(SHADER_DOWNLOAD_URL))
 			.bounds(headerX, HEADER_TOP + HEADER_BUTTON_HEIGHT + HEADER_BUTTON_GAP,
 				HEADER_BUTTON_WIDTH, HEADER_BUTTON_HEIGHT)
 			.tooltip(Tooltip.create(Component.translatable("tapetumshaders.gui.download_shaders.tooltip")))
@@ -147,7 +147,7 @@ public class ShaderPackScreen extends Screen {
 		int actionRightX = this.width / 2 + BUTTON_GAP / 2;
 
 		this.addRenderableWidget(Button.builder(Component.translatable("tapetumshaders.gui.open_folder"),
-				button -> Util.getPlatform().openFile(TapetumShaders.getShaderpacksDirectory().toFile()))
+				button -> VersionCompat.openPath(TapetumShaders.getShaderpacksDirectory()))
 			.bounds(actionLeftX, actionRowY, actionWidth, BUTTON_HEIGHT)
 			.build());
 

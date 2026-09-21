@@ -9,10 +9,12 @@ import java.util.jar.JarFile;
 import java.util.Set;
 import java.util.HashSet;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 
-/** Reads archives and bytecode only, without Minecraft initialization or a graphics context. */
+/** Headless bytecode and pure camera-state checks, without a Minecraft client or graphics context. */
 public final class NativeEngineContractTest {
     private static int checks;
 
@@ -57,8 +59,73 @@ public final class NativeEngineContractTest {
             long keys = initializer.methods.stream().flatMap(m -> java.util.Arrays.stream(m.instructions.toArray()))
                 .filter(i -> i instanceof MethodInsnNode call && call.name.equals("registerKeyMapping")).count();
             require(keys == 2, "Standalone O/K controls registered without another renderer");
+            verifyRenderHooks(mod);
+            verifyGlBridge(mod);
         }
+        FrameStateContractTest.run();
         System.out.println("Native Tapetum engine contract: " + checks + " checks passed (headless)");
+    }
+
+    private static void verifyRenderHooks(JarFile mod) throws IOException {
+        ClassNode renderer = resourceClass("net/minecraft/client/renderer/LevelRenderer");
+        ClassNode mixin = new ClassNode();
+        new ClassReader(read(mod, "dev/tapetum/shaders/mixin/MixinLevelRenderer.class")).accept(mixin, 0);
+        int hooks = 0;
+        for (var method : mixin.methods) {
+            if (method.visibleAnnotations == null) continue;
+            for (var annotation : method.visibleAnnotations) {
+                if (!annotation.desc.equals("Lorg/spongepowered/asm/mixin/injection/Inject;")) continue;
+                hooks++;
+                int key = annotation.values.indexOf("method");
+                require(key >= 0, "Render hook declares a target");
+                var targets = (java.util.List<?>) annotation.values.get(key + 1);
+                Type[] args = Type.getArgumentTypes(method.desc);
+                require(args[args.length - 1].getInternalName().endsWith("/CallbackInfo"), "Render hook has callback");
+                String descriptor = Type.getMethodDescriptor(Type.VOID_TYPE, java.util.Arrays.copyOf(args, args.length - 1));
+                require(targets.size() == 1 && renderer.methods.stream().anyMatch(target ->
+                    target.name.equals(targets.get(0)) && target.desc.equals(descriptor)),
+                    "Render hook exactly matches this Minecraft version: " + descriptor);
+            }
+            if (method.name.equals("tapetum$beginLevelRender")) {
+                var calls = java.util.Arrays.stream(method.instructions.toArray())
+                    .filter(i -> i instanceof MethodInsnNode).map(i -> (MethodInsnNode) i).toList();
+                int begin = -1;
+                int capture = -1;
+                for (int i = 0; i < calls.size(); i++) {
+                    if (calls.get(i).owner.equals("dev/tapetum/shaders/pipeline/PipelineManager")
+                        && calls.get(i).name.equals("beginLevelRendering")) begin = i;
+                    if (calls.get(i).owner.equals("dev/tapetum/shaders/uniform/FrameState")
+                        && calls.get(i).name.equals("capture")) capture = i;
+                }
+                require(begin >= 0 && capture > begin, "World transition is handled before camera capture");
+            }
+        }
+        require(hooks == 2, "Both render hooks were checked");
+    }
+
+    private static void verifyGlBridge(JarFile mod) throws IOException {
+        var methods = new HashSet<String>();
+        String bridge = "dev/tapetum/shaders/compat/GlStateManager";
+        String type = bridge;
+        while (type != null) {
+            var node = resourceClass(type);
+            for (var method : node.methods) {
+                if ((method.access & Opcodes.ACC_PUBLIC) != 0 && (method.access & Opcodes.ACC_STATIC) != 0)
+                    methods.add(method.name + method.desc);
+            }
+            type = node.superName;
+        }
+        for (var entry : mod.stream().filter(e -> e.getName().endsWith(".class")).toList()) {
+            var node = new ClassNode();
+            new ClassReader(read(mod, entry.getName())).accept(node, 0);
+            for (var method : node.methods) {
+                for (var instruction : method.instructions) {
+                    if (instruction instanceof MethodInsnNode call && call.owner.equals(bridge)) {
+                        require(methods.contains(call.name + call.desc), "GL cache bridge resolves " + call.name + call.desc);
+                    }
+                }
+            }
+        }
     }
 
     private static ClassNode resourceClass(String name) throws IOException {

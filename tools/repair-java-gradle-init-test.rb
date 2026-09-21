@@ -17,6 +17,7 @@ class JavaGradleInitRepairTest < Minitest::Test
 
   def teardown
     File.unlink(@destination) if File.exist?(@destination) || File.symlink?(@destination)
+    File.unlink(@extra_destination) if @extra_destination && File.exist?(@extra_destination)
     FileUtils.remove_entry(@directory)
   end
 
@@ -60,5 +61,38 @@ class JavaGradleInitRepairTest < Minitest::Test
     FileUtils.cp(@archive, other)
     assert_raises(ArgumentError) { JavaGradleInitRepair.restore(other, @destination) }
     refute File.exist?(@destination)
+  end
+
+  def add_second_script
+    source = @source + '// Second bundled resource'
+    entry = 'gradle/init/second.gradle'
+    File.write(File.join(@directory, entry), source)
+    _, status = Open3.capture2('zip', '-q', @archive, entry, chdir: @directory)
+    raise 'Cannot update test archive' unless status.success?
+    @extra_destination = File.join(Dir.tmpdir, "#{Digest::SHA256.hexdigest(source)}.gradle")
+    entry
+  end
+
+  def test_batch_restores_all_and_is_idempotent
+    extra = add_second_script
+    result = JavaGradleInitRepair.restore_all(@archive)
+    assert_equal({@entry => 'restored', extra => 'restored'}, result)
+    assert_equal @source, File.binread(@destination)
+    assert File.file?(@extra_destination)
+    assert_equal({@entry => 'verified', extra => 'verified'}, JavaGradleInitRepair.restore_all(@archive))
+  end
+
+  def test_batch_preflight_rejects_conflict_before_writing
+    add_second_script
+    File.write(@extra_destination, 'unrelated')
+    assert_raises(ArgumentError) { JavaGradleInitRepair.restore_all(@archive) }
+    refute File.exist?(@destination)
+    assert_equal 'unrelated', File.read(@extra_destination)
+  end
+
+  def test_batch_rejects_symlink_even_to_matching_content
+    File.symlink(File.join(@directory, @entry), @destination)
+    assert_raises(ArgumentError) { JavaGradleInitRepair.restore_all(@archive) }
+    assert File.symlink?(@destination)
   end
 end

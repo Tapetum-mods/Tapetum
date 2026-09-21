@@ -2,14 +2,14 @@
 // compiled from ../shared, so a change there lands in every supported version at once.
 plugins {
     id("java")
-    id("net.fabricmc.fabric-loom") version("1.15.4")
+    id("net.fabricmc.fabric-loom") version("1.17.20")
 }
 
 // Plain reads rather than the `by project` / `by extra` delegates: both Kotlin-DSL syntaxes are
 // deprecated and are removed in Gradle 10. Nothing here needs these in `extra` - they were only
 // ever read by this script.
-val minecraftVersion = project.property("mc262_minecraft") as String
-val fabricApiVersion = project.property("mc262_fabricApi") as String
+val minecraftVersion = project.property("mc263_minecraft") as String
+val fabricApiVersion = project.property("mc263_fabricApi") as String
 val fabricLoaderVersion = project.property("fabricLoaderVersion") as String
 val modVersion = project.property("modVersion") as String
 val mavenGroup = project.property("mavenGroup") as String
@@ -133,6 +133,18 @@ val glTest = sourceSets.create("glTest") {
     java.srcDir(rootProject.file("shared/src/glTest/java"))
     compileClasspath += sourceSets.main.get().output + sourceSets.main.get().compileClasspath
     runtimeClasspath += output + compileClasspath + sourceSets.main.get().runtimeClasspath
+}
+// Minecraft 26.3 uses SDL. Only the standalone GPU harness still needs GLFW; never ship it.
+dependencies {
+    add(glTest.implementationConfigurationName, "org.lwjgl:lwjgl-glfw:3.4.3")
+    val os = System.getProperty("os.name").lowercase()
+    val arm = System.getProperty("os.arch") in listOf("aarch64", "arm64")
+    val platform = when {
+        os.startsWith("mac") -> "macos"
+        os.startsWith("windows") -> "windows"
+        else -> "linux"
+    }
+    add(glTest.runtimeOnlyConfigurationName, "org.lwjgl:lwjgl-glfw:3.4.3:natives-$platform${if (arm) "-arm64" else ""}")
 }
 val smokeTest = sourceSets.create("smokeTest") {
     java.srcDir(rootProject.file("shared/src/smokeTest/java"))

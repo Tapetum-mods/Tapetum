@@ -1,8 +1,8 @@
 package dev.tapetum.shaders.compat;
 
-import com.mojang.blaze3d.opengl.GlStateManager;
+import com.mojang.blaze3d.opengl.GlTexture;
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.systems.GpuDevice;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.client.Camera;
@@ -23,6 +23,14 @@ public final class VersionCompat {
 	private VersionCompat() {
 	}
 
+	public static void openUri(String uri) {
+		net.minecraft.util.Util.getPlatform().openUri(uri);
+	}
+
+	public static void openPath(java.nio.file.Path path) {
+		net.minecraft.util.Util.getPlatform().openFile(path.toFile());
+	}
+
 	/** The index selects the draw buffer; 26.1.2 had no such parameter. */
 	public static void enableBlend() {
 		GlStateManager._enableBlend(0);
@@ -33,8 +41,17 @@ public final class VersionCompat {
 	}
 
 	/** 26.1.2 had this directly on GpuDevice. */
-	public static String backendName(GpuDevice device) {
-		return device.getDeviceInfo().backendName();
+	public static String backendName() {
+		var device = RenderSystem.tryGetDevice();
+		return device == null ? null : device.getDeviceInfo().backendName();
+	}
+
+	public static int colorTextureId(RenderTarget target) {
+		return target.getColorTexture() instanceof GlTexture texture ? texture.glId() : 0;
+	}
+
+	public static int depthTextureId(RenderTarget target) {
+		return target.getDepthTexture() instanceof GlTexture texture ? texture.glId() : 0;
 	}
 
 	/**

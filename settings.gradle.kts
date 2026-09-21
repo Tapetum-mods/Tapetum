@@ -21,4 +21,4 @@ pluginManagement {
 // configures every included subproject up front, leaving it included would break `./gradlew build`
 // (and any single-module build) for mc26.1/mc26.2 too. Its source is untouched on disk; re-add
 // "mc1.21.11" here once that's fixed.
-include("common", "mc26.1", "mc26.2")
+include("common", "mc26.1", "mc26.2", "mc26.3")
