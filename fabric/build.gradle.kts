@@ -1,7 +1,7 @@
 // Fabric adapter and renderer for this branch's single Minecraft version.
 plugins {
     id("java")
-    id("net.fabricmc.fabric-loom") version("1.15.4")
+    id("net.fabricmc.fabric-loom") version("1.17.20")
 }
 
 // Plain reads rather than the `by project` / `by extra` delegates: both Kotlin-DSL syntaxes are
@@ -122,6 +122,18 @@ tasks.check { dependsOn("nativeEngineContractTest") }
 val glTest = sourceSets.create("glTest") {
     compileClasspath += sourceSets.main.get().output + sourceSets.main.get().compileClasspath
     runtimeClasspath += output + compileClasspath + sourceSets.main.get().runtimeClasspath
+}
+// Minecraft uses SDL on 26.3; GLFW belongs only to the standalone GPU harness.
+dependencies {
+    add(glTest.implementationConfigurationName, "org.lwjgl:lwjgl-glfw:3.4.3")
+    val os = System.getProperty("os.name").lowercase()
+    val arm = System.getProperty("os.arch") in listOf("aarch64", "arm64")
+    val platform = when {
+        os.startsWith("mac") -> "macos"
+        os.startsWith("windows") -> "windows"
+        else -> "linux"
+    }
+    add(glTest.runtimeOnlyConfigurationName, "org.lwjgl:lwjgl-glfw:3.4.3:natives-$platform${if (arm) "-arm64" else ""}")
 }
 val smokeTest = sourceSets.create("smokeTest") {
     compileClasspath += sourceSets.main.get().output + sourceSets.main.get().compileClasspath
