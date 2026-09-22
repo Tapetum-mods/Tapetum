@@ -13,7 +13,6 @@ Use one Minecraft version line per branch, with `common/` and `fabric/` on every
 | `26.2` | Minecraft 26.2 |
 | `26.3` | Minecraft 26.3, experimental OpenGL |
 | `future` | Shared development; check gradle.properties for its current baseline |
-| `main` | Retained legacy history |
 
 Create a work branch from the intended target, for example:
 
@@ -28,7 +27,9 @@ version branch into another to synchronize names: Minecraft adapters and depende
 Use `feature/*`, `fix/*`, `hotfix/*` or `refactor/*` work branches.
 
 Historical version branches are created only when real port work exists. Branch names are not
-compatibility claims. Preserve existing history; do not force-push or delete old branches.
+compatibility claims. Preserve history and never force-push version lines.
+Remove completed work branches only after their commits are reachable from a retained branch.
+The obsolete `main` branch is not part of the active layout.
 
 ## Source ownership
 
