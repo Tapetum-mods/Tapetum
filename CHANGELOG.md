@@ -19,6 +19,9 @@
 
 ### Changed
 
+- Removed retired external-renderer integration sources, dependent tests and the embedded-engine smoke script.
+- Published the unfinished 1.16.5 port separately from buildable 26.x branches; no legacy artifact is claimed.
+
 - Reorganized active development into one Minecraft version per Git branch, with common/ and
   fabric/ modules instead of shared/ and parallel mc26.* modules. Preserved existing history.
 - Retired the obsolete main branch and completed work branches after preserving their commits;

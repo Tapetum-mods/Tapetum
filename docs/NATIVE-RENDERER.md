@@ -16,8 +16,8 @@ The project is open source under its existing license. No public upload is perfo
 - Vanilla dimension program selection, world-owned target recreation and camera-history resets.
 - Finite inverse validation and headless render-hook/GL-bridge linkage checks.
 
-Sodium integration/encoding experiments live in `research/retired-sodium/`, outside source sets.
-Their four unit tests and two GPU scenarios are retired, not counted as passing native tests.
+Retired external-renderer integrations and their dependent tests have been removed from the tree.
+They remain recoverable from Git history, but are neither shipped nor counted as passing native tests.
 
 ## Required for Faithful World Rendering
 
