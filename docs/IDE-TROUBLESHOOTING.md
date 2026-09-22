@@ -1,5 +1,9 @@
 # Missing Java extension Gradle initialization script
 
+Current layout: the root, `common` and `fabric` are the three projects in a version branch.
+The five-project results below describe the earlier multi-version layout.
+After switching branches, run Java: Reload Projects and wait for import completion.
+
 An error on line 1 of `build.gradle.kts` can originate outside the build script:
 
 ```text
@@ -117,7 +121,7 @@ as unverified even when terminal model checks pass.
 ```sh
 ruby tools/repair-java-gradle-init-test.rb
 ./gradlew help --offline --init-script /absolute/path/from/the/error/<sha256>.gradle
-./gradlew clean build :mc26.1:compileGlTestJava :mc26.2:compileGlTestJava :mc26.3:compileGlTestJava --offline --no-build-cache --console=plain
+./gradlew clean build :fabric:compileGlTestJava --offline --no-build-cache --console=plain
 ```
 
 Do not downgrade Gradle, suppress Java errors, or disable Gradle imports for this symptom.

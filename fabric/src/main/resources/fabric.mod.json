@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "tapetumshaders",
+  "version": "${version}",
+  "name": "Tapetum Shaders",
+  "description": "Experimental open-source Tapetum shader engine. Full world shader rendering is still in development.",
+  "authors": [
+    "Raik"
+  ],
+  "contact": {
+    "homepage": "https://github.com/Tapetum-mods/Tapetum",
+    "sources": "https://github.com/Tapetum-mods/Tapetum",
+    "issues": "https://github.com/Tapetum-mods/Tapetum/issues"
+  },
+  "license": "LGPL-3.0-only",
+  "environment": "client",
+  "entrypoints": {
+    "main": [
+      "dev.tapetum.shaders.TapetumShaders"
+    ],
+    "client": [
+      "dev.tapetum.shaders.TapetumShadersClient"
+    ]
+  },
+  "mixins": [
+    "tapetumshaders.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "${minecraftVersion}",
+    "java": ">=25"
+  }
+}

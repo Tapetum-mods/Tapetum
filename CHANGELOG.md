@@ -19,6 +19,12 @@
 
 ### Changed
 
+- Reorganized active development into one Minecraft version per Git branch, with common/ and
+  fabric/ modules instead of shared/ and parallel mc26.* modules. Preserved existing history.
+- Separated local snapshots, numbered CI builds and explicit release-mode artifact versions.
+- Added headless GitHub build workflows and an explicit release checklist, without publishing a release.
+- Updated repository navigation, issue templates and read-only Modrinth verification for the new layout.
+
 - Removed obsolete root-level guidance files and consolidated maintainer testing and launcher-import
   procedures in CONTRIBUTING.md. Preserved licensing, attribution and technical verification records.
 - Added a phased Eclipse/Gradle import check using the IDE's original initialization scripts,

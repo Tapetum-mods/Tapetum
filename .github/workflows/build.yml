@@ -1,0 +1,50 @@
+name: Build
+
+on:
+  push:
+    branches: ['26.*', future, 'feature/**', 'fix/**', 'hotfix/**', 'refactor/**']
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      release_build:
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: |
+            21
+            25
+      - name: Build and headless checks
+        env:
+          RELEASE_BUILD: ${{ inputs.release_build || false }}
+        run: ./gradlew clean build :fabric:compileGlTestJava -Pbuild.release="$RELEASE_BUILD" --console=plain
+      - name: Init-script recovery regression tests
+        run: ruby tools/repair-java-gradle-init-test.rb
+      - name: Artifact verifier regression tests
+        run: ruby tools/verify-artifact-test.rb
+      - name: Verify production artifact and release tag
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || '' }}
+        run: ruby tools/verify-artifact.rb fabric/build/libs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: tapetum-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            fabric/build/libs/*.jar
+            common/build/reports/tests/test/
+          if-no-files-found: error
+          retention-days: 14

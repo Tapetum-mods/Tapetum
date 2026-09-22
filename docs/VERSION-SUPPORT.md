@@ -1,14 +1,15 @@
 # Minecraft version support
 
 Requested range: Minecraft Java Edition 1.16.5 through 26.3, Fabric, without Iris or Sodium.
-This is the target range. Only the artifacts listed as built below currently exist.
+This is the target range, not a compatibility claim. Each active version is built from its own
+Git branch using `common/` and `fabric/`; older multi-version builds are historical.
 
 | Version | Current state | Remaining work |
 |---|---|---|
 | 1.16.5 | Not ported | Legacy game APIs, mappings, Java baseline and renderer integration |
 | 1.17.x through 1.20.x | Not ported | Version-family adapters and separate tested artifacts |
 | 1.21.x before 1.21.11 | Not ported | Version-family adapters and separate tested artifacts |
-| 1.21.11 | Parked experimental module | Resolve Loom/remapping setup, remove old integration and port current code |
+| 1.21.11 | Historical prototype only | Resolve Loom/remapping setup and develop a standalone port |
 | 26.1 / 26.1.1 | No matching artifact | Port and test separately; the 26.1.2 JAR does not declare them compatible |
 | 26.1.2 | Built, headless checks pass | Complete world rendering and in-game validation |
 | 26.2 | Built, headless checks pass | Complete world rendering and in-game validation |
@@ -33,7 +34,9 @@ References: [Fabric porting notes](https://www.fabricmc.net/2026/09/15/263.html)
 
 ## Artifacts
 
-Each active module produces `build/libs/tapetum-shaders-0.1.0+mc<version>.jar` and a separate
-`-sources.jar`. Import only the production artifact using the launcher's supported workflow.
+Each active version branch produces artifacts in `fabric/build/libs/`, with a separate sources JAR.
+Default builds are `tapetum-shaders-0.1.0-snapshot+mc<version>-local.jar`; CI replaces `local`
+with `build.<run>`. Explicit release mode uses `0.1.0+mc<version>`.
+Import only the production artifact using the launcher's supported workflow.
 No 26.3 Modrinth profile has been selected or modified automatically. No release tag or universal
 compatibility claim follows from generating these local artifacts.

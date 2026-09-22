@@ -1,0 +1,16 @@
+name: Release verification
+
+# Produces verified artifacts only. Publishing remains an explicit maintainer action.
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  verify-release:
+    uses: ./.github/workflows/build.yml
+    with:
+      release_build: true
