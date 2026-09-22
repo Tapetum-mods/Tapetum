@@ -7,7 +7,6 @@ import dev.tapetum.shaders.compat.VersionCompat;
 import dev.tapetum.shaders.uniform.FrameState;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.chunk.ChunkSectionsToRender;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.world.level.material.FogType;
 import org.joml.Matrix4fc;
@@ -25,11 +24,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  */
 @Mixin(LevelRenderer.class)
 public abstract class MixinLevelRenderer {
-	@Inject(method = "renderLevel", at = @At("HEAD"))
+	@Inject(method = "render", at = @At("HEAD"))
 	private void tapetum$beginLevelRender(GraphicsResourceAllocator resourceAllocator, DeltaTracker deltaTracker,
 			boolean renderOutline, CameraRenderState cameraState, Matrix4fc modelViewMatrix,
-			GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky,
-			ChunkSectionsToRender chunkSectionsToRender, CallbackInfo ci) {
+			GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky, CallbackInfo ci) {
 		TapetumShaders.getPipelineManager().beginLevelRendering();
 		// Captured here rather than at RETURN: the projection matrix and camera live on the render
 		// state handed to this method, and the model-view matrix is a parameter. Both are out of reach
@@ -41,11 +39,10 @@ public abstract class MixinLevelRenderer {
 
 	}
 
-	@Inject(method = "renderLevel", at = @At("RETURN"))
+	@Inject(method = "render", at = @At("RETURN"))
 	private void tapetum$endLevelRender(GraphicsResourceAllocator resourceAllocator, DeltaTracker deltaTracker,
 			boolean renderOutline, CameraRenderState cameraState, Matrix4fc modelViewMatrix,
-			GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky,
-			ChunkSectionsToRender chunkSectionsToRender, CallbackInfo ci) {
+			GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky, CallbackInfo ci) {
 		TapetumShaders.getPipelineManager().finalizeLevelRendering();
 	}
 
