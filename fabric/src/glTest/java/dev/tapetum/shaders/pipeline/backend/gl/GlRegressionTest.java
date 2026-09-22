@@ -1,6 +1,6 @@
 package dev.tapetum.shaders.pipeline.backend.gl;
 
-import dev.tapetum.shaders.compat.GlStateManager;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -121,17 +121,17 @@ public final class GlRegressionTest {
     }
 
     private static void vertexArray() throws Exception {
-        int vao = GlStateManager._glGenVertexArrays();
+        int vao = org.lwjgl.opengl.GL30.glGenVertexArrays();
         try (FullScreenTriangle triangle = new FullScreenTriangle();
                 GlProgram program = GlProgram.link("vao", VERTEX,
                     "#version 330 core\nout vec4 color; void main() { color = vec4(1.0); }")) {
             program.use();
             GlStateManager._glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
-            GlStateManager._glBindVertexArray(vao);
+            org.lwjgl.opengl.GL30.glBindVertexArray(vao);
             triangle.draw();
             equal(vao, GL11.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING), "VAO after draw");
         } finally {
-            GlStateManager._glBindVertexArray(0);
+            org.lwjgl.opengl.GL30.glBindVertexArray(0);
             GL30.glDeleteVertexArrays(vao);
             GlProgram.unbind();
         }
@@ -160,7 +160,7 @@ public final class GlRegressionTest {
                     state.prepareForFullscreen();
                     targets.resize(size, size);
                     destination.resize(size, size);
-                    try (FramebufferBindings _ = targets.bindForWriting(List.of(2, 0))) {
+                    try (FramebufferBindings framebufferScope = targets.bindForWriting(List.of(2, 0))) {
                         seed.use();
                         triangle.draw();
                     }
@@ -172,7 +172,7 @@ public final class GlRegressionTest {
                     try {
                         // Default mipmap filtering would make these single-level textures incomplete.
                         GL33.glBindSampler(12, sampler);
-                        try (FramebufferBindings _ = targets.bindForWriting(List.of(0))) {
+                        try (FramebufferBindings framebufferScope = targets.bindForWriting(List.of(0))) {
                             copy.use();
                             copy.bindSampler("scene", 12, targets.readTexture(2));
                             triangle.draw();
@@ -258,7 +258,7 @@ public final class GlRegressionTest {
             targets.resize(8, 8);
             FramebufferBindings before = FramebufferBindings.capture();
             for (List<Integer> invalid : List.of(List.of(1), List.of(-1), List.of(0, 0))) {
-                try (FramebufferBindings _ = targets.bindForWriting(invalid)) {
+                try (FramebufferBindings framebufferScope = targets.bindForWriting(invalid)) {
                     throw new AssertionError("Accepted invalid outputs " + invalid);
                 } catch (IllegalArgumentException expected) {
                     if (!before.equals(FramebufferBindings.capture())) {

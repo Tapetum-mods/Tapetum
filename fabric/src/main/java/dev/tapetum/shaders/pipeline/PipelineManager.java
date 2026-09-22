@@ -16,7 +16,7 @@ import dev.tapetum.shaders.shaderpack.uniform.CustomUniforms;
 import dev.tapetum.shaders.shaderpack.glsl.FullScreenVertexAdapter;
 import dev.tapetum.shaders.shaderpack.glsl.DrawBuffers;
 import dev.tapetum.shaders.shaderpack.ShaderProgramChain;
-import dev.tapetum.shaders.compat.GlStateManager;
+import com.mojang.blaze3d.platform.GlStateManager;
 import dev.tapetum.shaders.shaderpack.glsl.GlslCompatPatcher;
 import dev.tapetum.shaders.shaderpack.glsl.GlslIncludeException;
 import dev.tapetum.shaders.shaderpack.glsl.ShaderMacros;
@@ -224,7 +224,7 @@ public class PipelineManager implements ShaderEngine {
 		}
 
 		ShaderDimension dimension = ShaderDimension.fromDimensionId(renderingLevel == null ? null
-			: renderingLevel.dimension().identifier().toString());
+			: renderingLevel.dimension().location().toString());
 		List<ShaderProgramChain.Pass> chain = ShaderProgramChain.discover(pack, dimension);
 
 		if (chain.isEmpty()) {

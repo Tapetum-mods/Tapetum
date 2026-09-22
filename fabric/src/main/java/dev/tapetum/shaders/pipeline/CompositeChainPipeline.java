@@ -344,7 +344,7 @@ public final class CompositeChainPipeline implements RenderingPipeline {
 	private void runPass(CompiledPass pass) {
 		List<Integer> written = pass.drawBuffers().isEmpty() ? List.of(0) : pass.drawBuffers();
 
-		try (FramebufferBindings _ = targets.bindForWriting(written)) {
+		try (FramebufferBindings framebufferScope = targets.bindForWriting(written)) {
 			pass.program().use();
 			bindInputs(pass.program());
 			triangle.draw();

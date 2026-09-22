@@ -1,6 +1,6 @@
 package dev.tapetum.shaders.pipeline.backend.gl;
 
-import dev.tapetum.shaders.compat.GlStateManager;
+import com.mojang.blaze3d.platform.GlStateManager;
 import dev.tapetum.shaders.shaderpack.glsl.ColorTextureFormat;
 import org.lwjgl.opengl.GL21;
 import org.lwjgl.opengl.GL31;
@@ -340,7 +340,7 @@ public final class RenderTargets implements AutoCloseable {
 			return;
 		}
 
-		try (FramebufferBindings _ = FramebufferBindings.capture()) {
+		try (FramebufferBindings framebufferScope = FramebufferBindings.capture()) {
 			GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, presentFramebuffer);
 			GlStateManager._glFramebufferTexture2D(GL30.GL_READ_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0,
 				GL11.GL_TEXTURE_2D, sceneTexture, 0);
@@ -375,7 +375,7 @@ public final class RenderTargets implements AutoCloseable {
 			return;
 		}
 
-		try (FramebufferBindings _ = FramebufferBindings.capture()) {
+		try (FramebufferBindings framebufferScope = FramebufferBindings.capture()) {
 			GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, framebuffer);
 			GlStateManager._glFramebufferTexture2D(GL30.GL_READ_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0,
 				GL11.GL_TEXTURE_2D, frontTexture[colortexIndex], 0);

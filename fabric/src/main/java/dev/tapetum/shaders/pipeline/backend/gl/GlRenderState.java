@@ -1,6 +1,6 @@
 package dev.tapetum.shaders.pipeline.backend.gl;
 
-import dev.tapetum.shaders.compat.GlStateManager;
+import com.mojang.blaze3d.platform.GlStateManager;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL15;
@@ -91,7 +91,7 @@ public final class GlRenderState implements AutoCloseable {
         }
         GlStateManager._activeTexture(activeTexture);
         GlStateManager._glUseProgram(program);
-        GlStateManager._glBindVertexArray(vao);
+        org.lwjgl.opengl.GL30.glBindVertexArray(vao);
         framebuffers.close();
         GL11.glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
         for (int i = 0; i < CAPABILITIES.length; i++) {
