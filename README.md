@@ -2,6 +2,21 @@
 
 # Tapetum Shaders
 
+## This branch: Minecraft 1.16.5 port in progress
+
+**Not buildable or installable yet. No 1.16.5 JAR is available.**
+This branch publishes the actual migration work, not a compatibility claim.
+The 26.x build results described below do not apply to this branch.
+
+- Target: Minecraft 1.16.5, Fabric API 0.42.0+1.16 and Fabric Loader 0.19.3.
+- Uses Loom's remapping plugin and official Mojang mappings, not the non-obfuscated 26.x setup.
+- Java 21 is the intended minimum runtime; Java 8 is not supported by this port.
+- Legacy camera/render hooks, key bindings, matrix conversion and GL calls are being adapted.
+- Remaining compile blockers include the shader picker UI and version-specific player/biome uniforms.
+- Headless contracts still need legacy API/remapped-artifact coverage. In-game validation has not run.
+
+The branch is intentionally visible for development review. Do not install a renamed 26.x JAR.
+
 An open-source Fabric shader engine with no Iris or Sodium dependency.
 Tapetum owns its renderer. Existing LGPL licensing and attribution remain unchanged.
 

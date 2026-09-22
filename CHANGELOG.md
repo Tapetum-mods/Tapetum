@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Minecraft 1.16.5 work in progress
+
+- Added a dedicated legacy branch with its own common/ and fabric/ sources.
+- Selected the remapping Loom plugin, official game mappings and the 1.16 Fabric API modules.
+- Began adapting camera/render hooks, key bindings, legacy matrices and OpenGL state calls.
+- Declared a Java 21 runtime baseline. The legacy UI, uniforms and headless contracts remain unfinished.
+- This branch does not compile yet and does not publish an installable artifact.
+
 ### Fixed
 
 - Restored the complete Java extension Gradle script bundle, not only the first missing file.

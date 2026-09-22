@@ -1,70 +1,48 @@
 package dev.tapetum.shaders.mixin;
 
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
-import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Matrix4f;
 import dev.tapetum.shaders.TapetumShaders;
+import dev.tapetum.shaders.compat.LegacyMatrices;
 import dev.tapetum.shaders.compat.VersionCompat;
 import dev.tapetum.shaders.uniform.FrameState;
-import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.Camera;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.chunk.ChunkSectionsToRender;
-import net.minecraft.client.renderer.state.level.CameraRenderState;
-import net.minecraft.world.level.material.FogType;
-import org.joml.Matrix4fc;
-import org.joml.Vector4f;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.tags.FluidTags;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.system.MemoryStack;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/**
- * Brackets this version's completed world render for Tapetum's screen-space pipeline.
- * Geometry/shadow programs require additional pass-specific integration, not just these hooks.
- * Headless contract checks verify both descriptors against the exact Minecraft version.
- */
+/** Brackets the 1.16.5 world draw. Geometry and shadow passes remain separate development work. */
 @Mixin(LevelRenderer.class)
 public abstract class MixinLevelRenderer {
-	@Inject(method = "renderLevel", at = @At("HEAD"))
-	private void tapetum$beginLevelRender(GraphicsResourceAllocator resourceAllocator, DeltaTracker deltaTracker,
-			boolean renderOutline, CameraRenderState cameraState, Matrix4fc modelViewMatrix,
-			GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky,
-			ChunkSectionsToRender chunkSectionsToRender, CallbackInfo ci) {
-		TapetumShaders.getPipelineManager().beginLevelRendering();
-		// Captured here rather than at RETURN: the projection matrix and camera live on the render
-		// state handed to this method, and the model-view matrix is a parameter. Both are out of reach
-		// by the time the chain runs at the end of the same call.
-		FrameState.capture(modelViewMatrix, cameraState.projectionMatrix, cameraState.pos,
-			NEAR_PLANE, cameraState.depthFar, encodeFogType(cameraState.fogType), fogColor,
-			VersionCompat.skyAngle(deltaTracker.getGameTimeDeltaPartialTick(false)),
-			VersionCompat.moonPhase(deltaTracker.getGameTimeDeltaPartialTick(false)));
+    @Inject(method = "renderLevel", at = @At("HEAD"))
+    private void tapetum$beginLevelRender(PoseStack pose, float partialTick, long finishTimeNano,
+            boolean renderOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture,
+            Matrix4f projection, CallbackInfo ci) {
+        TapetumShaders.getPipelineManager().beginLevelRendering();
+        var fluid = camera.getFluidInCamera();
+        int eyeInWater = fluid.is(FluidTags.WATER) ? 1 : fluid.is(FluidTags.LAVA) ? 2 : 0;
+        FrameState.capture(LegacyMatrices.convert(pose.last().pose()), LegacyMatrices.convert(projection),
+            camera.getPosition(), 0.05f, gameRenderer.getRenderDistance() * 4.0f, eyeInWater, null,
+            VersionCompat.skyAngle(partialTick), VersionCompat.moonPhase(partialTick));
+    }
 
-	}
-
-	@Inject(method = "renderLevel", at = @At("RETURN"))
-	private void tapetum$endLevelRender(GraphicsResourceAllocator resourceAllocator, DeltaTracker deltaTracker,
-			boolean renderOutline, CameraRenderState cameraState, Matrix4fc modelViewMatrix,
-			GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky,
-			ChunkSectionsToRender chunkSectionsToRender, CallbackInfo ci) {
-		TapetumShaders.getPipelineManager().finalizeLevelRendering();
-	}
-
-	/** Minecraft's near plane, which the projection above is built with. */
-	private static final float NEAR_PLANE = 0.05f;
-
-	/** OptiFine's {@code isEyeInWater} encoding: 0 none, 1 water, 2 lava, 3 powder snow. */
-	@Unique
-	private static int encodeFogType(FogType fogType) {
-		if (fogType == FogType.WATER) {
-			return 1;
-		}
-		if (fogType == FogType.LAVA) {
-			return 2;
-		}
-		if (fogType == FogType.POWDER_SNOW) {
-			return 3;
-		}
-		return 0;
-	}
-
+    @Inject(method = "renderLevel", at = @At("RETURN"))
+    private void tapetum$endLevelRender(PoseStack pose, float partialTick, long finishTimeNano,
+            boolean renderOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture,
+            Matrix4f projection, CallbackInfo ci) {
+        // FogRenderer establishes this frame's fixed-function fog inside renderLevel, after HEAD.
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            var fog = stack.mallocFloat(4);
+            GL11.glGetFloatv(GL11.GL_FOG_COLOR, fog);
+            FrameState.fogColor().set(fog.get(0), fog.get(1), fog.get(2));
+        }
+        TapetumShaders.getPipelineManager().finalizeLevelRendering();
+    }
 }

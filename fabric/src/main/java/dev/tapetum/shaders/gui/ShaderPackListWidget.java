@@ -1,9 +1,8 @@
 package dev.tapetum.shaders.gui;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.components.ObjectSelectionList;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
 import java.util.List;
@@ -30,7 +29,9 @@ public class ShaderPackListWidget extends ObjectSelectionList<ShaderPackListWidg
 	private static final int NORMAL_COLOR = 0xFFFFFFFF;
 
 	public ShaderPackListWidget(Minecraft minecraft, int width, int height, int y, int itemHeight) {
-		super(minecraft, width, height, y, itemHeight);
+		super(minecraft, width, height + y, y, y + height, itemHeight);
+		setRenderBackground(false);
+		setRenderTopAndBottom(false);
 	}
 
 	public void setSelectionListener(Runnable selectionListener) {
@@ -39,7 +40,7 @@ public class ShaderPackListWidget extends ObjectSelectionList<ShaderPackListWidg
 
 	@Override
 	public int getRowWidth() {
-		return ROW_WIDTH;
+		return Math.min(ROW_WIDTH, Math.max(32, width - 32));
 	}
 
 	/**
@@ -52,13 +53,13 @@ public class ShaderPackListWidget extends ObjectSelectionList<ShaderPackListWidg
 	public void refill(List<String> packNames, String appliedPack, String selectedPack) {
 		clearEntries();
 
-		PackEntry noneEntry = new PackEntry(null, Component.translatable("tapetumshaders.gui.none_selected"),
+		PackEntry noneEntry = new PackEntry(null, new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.none_selected"),
 			appliedPack == null);
 		addEntry(noneEntry);
 		PackEntry toSelect = selectedPack == null ? noneEntry : null;
 
 		for (String packName : packNames) {
-			PackEntry entry = new PackEntry(packName, Component.literal(packName),
+			PackEntry entry = new PackEntry(packName, new net.minecraft.network.chat.TextComponent(packName),
 				Objects.equals(packName, appliedPack));
 			addEntry(entry);
 
@@ -91,22 +92,24 @@ public class ShaderPackListWidget extends ObjectSelectionList<ShaderPackListWidg
 		}
 
 		@Override
-		public void extractContent(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, boolean hovered, float partialTick) {
+		public void render(PoseStack pose, int index, int y, int x, int rowWidth, int rowHeight,
+				int mouseX, int mouseY, boolean hovered, float partialTick) {
 			var font = ShaderPackListWidget.this.minecraft.font;
-			int textY = getContentY() + (getContentHeight() - font.lineHeight) / 2;
+			int textY = y + (rowHeight - font.lineHeight) / 2;
 
 			// Ellipsize rather than letting a long pack name spill past the row.
 			String text = label.getString();
-			int available = getContentWidth();
+			int available = rowWidth;
 			if (font.width(text) > available) {
 				text = font.plainSubstrByWidth(text, Math.max(0, available - font.width("..."))) + "...";
 			}
 
-			guiGraphics.text(font, text, getContentX(), textY, applied ? APPLIED_COLOR : NORMAL_COLOR);
+			font.drawShadow(pose, text, x, textY, applied ? APPLIED_COLOR : NORMAL_COLOR);
 		}
 
 		@Override
-		public boolean mouseClicked(MouseButtonEvent mouseButtonEvent, boolean doubleClick) {
+		public boolean mouseClicked(double mouseX, double mouseY, int button) {
+			if (button != 0) return false;
 			// AbstractSelectionList doesn't select on click by itself - it only routes the event to
 			// the entry under the cursor - so selection has to happen here.
 			ShaderPackListWidget.this.setSelected(this);
@@ -114,9 +117,5 @@ public class ShaderPackListWidget extends ObjectSelectionList<ShaderPackListWidg
 			return true;
 		}
 
-		@Override
-		public Component getNarration() {
-			return label;
-		}
 	}
 }

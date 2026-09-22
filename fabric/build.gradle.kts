@@ -1,7 +1,7 @@
 // Fabric adapter and renderer for this branch's single Minecraft version.
 plugins {
     id("java")
-    id("net.fabricmc.fabric-loom") version("1.15.4")
+    id("net.fabricmc.fabric-loom-remap") version("1.15.4")
 }
 
 // Plain reads rather than the `by project` / `by extra` delegates: both Kotlin-DSL syntaxes are
@@ -21,7 +21,7 @@ base {
 }
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(25))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
 
 repositories {
@@ -34,7 +34,12 @@ repositories {
 
 dependencies {
     minecraft("com.mojang:minecraft:$minecraftVersion")
-    implementation("net.fabricmc:fabric-loader:$fabricLoaderVersion")
+    mappings(loom.officialMojangMappings())
+    modImplementation("net.fabricmc:fabric-loader:$fabricLoaderVersion")
+    implementation("org.joml:joml:1.10.8")
+    include("org.joml:joml:1.10.8")
+    implementation("org.slf4j:slf4j-api:2.0.17")
+    include("org.slf4j:slf4j-api:2.0.17")
 
     // The version-independent core is compiled in rather than shipped as a separate jar, so each
     // version's jar stays a single self-contained file.
@@ -42,12 +47,12 @@ dependencies {
 
     fun embedFabricApiModule(name: String) {
         val module = fabricApi.module(name, fabricApiVersion)
-        implementation(module)
+        modImplementation(module)
         include(module)
     }
 
     embedFabricApiModule("fabric-api-base")
-    embedFabricApiModule("fabric-key-mapping-api-v1")
+    embedFabricApiModule("fabric-key-binding-api-v1")
     embedFabricApiModule("fabric-lifecycle-events-v1")
 
 }
@@ -69,7 +74,7 @@ loom {
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
     options.compilerArgs.add("-Xlint:all")
-    options.release.set(25)
+    options.release.set(21)
 }
 
 tasks.jar {
@@ -113,7 +118,7 @@ tasks.register<JavaExec>("nativeEngineContractTest") {
     dependsOn(tasks.jar, tasks.named(contractTest.classesTaskName))
     classpath = contractTest.runtimeClasspath
     mainClass.set("dev.tapetum.shaders.compat.NativeEngineContractTest")
-    javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(25)) })
+    javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(21)) })
     args(tasks.jar.get().archiveFile.get().asFile.absolutePath, minecraftVersion, project.version.toString())
 }
 tasks.check { dependsOn("nativeEngineContractTest") }
@@ -137,7 +142,7 @@ tasks.register<JavaExec>("glRegressionTest") {
     systemProperty("tapetum.test.minecraftVersion", minecraftVersion)
     workingDir(layout.buildDirectory.dir("gl-regression").get().asFile)
     doFirst { workingDir.mkdirs() }
-    javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(25)) })
+    javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(21)) })
     jvmArgs("--enable-native-access=ALL-UNNAMED")
     if (System.getProperty("os.name").startsWith("Mac")) jvmArgs("-XstartOnFirstThread")
 }
