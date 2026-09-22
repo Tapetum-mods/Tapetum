@@ -21,6 +21,8 @@
 
 - Reorganized active development into one Minecraft version per Git branch, with common/ and
   fabric/ modules instead of shared/ and parallel mc26.* modules. Preserved existing history.
+- Retired the obsolete main branch and completed work branches after preserving their commits;
+  active GitHub branches contain no retired root-level guidance files.
 - Separated local snapshots, numbered CI builds and explicit release-mode artifact versions.
 - Added headless GitHub build workflows and an explicit release checklist, without publishing a release.
 - Updated repository navigation, issue templates and read-only Modrinth verification for the new layout.
