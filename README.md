@@ -25,7 +25,8 @@ Each Minecraft line has its own branch and contains only that line's sources and
 
 The selected branch's exact target is in `gradle.properties`. The requested 1.16.5-26.3 range
 is a goal, not a support claim. See [version status](docs/VERSION-SUPPORT.md).
-The existing `main` branch is retained as legacy history, not the default development branch.
+The active branches are `26.1`, `26.2`, `26.3` and `future`.
+Completed work branches and the obsolete `main` branch are removed after their history is preserved.
 
 This organization follows the version-branch and loader-module approach seen in
 [Iris](https://github.com/IrisShaders/Iris). Tapetum remains Fabric-only and does not copy Iris's

@@ -4,7 +4,6 @@
 - [ ] `26.2`
 - [ ] `26.3` experimental
 - [ ] `future`
-- [ ] `main` legacy integration only
 
 Choose the affected Minecraft line, or `future` for shared development. Do not use the default
 branch automatically. See [branch policy](../CONTRIBUTING.md#branches).
