@@ -97,6 +97,27 @@ public class ShaderPack implements AutoCloseable {
 		optionValues = values.isEmpty() ? java.util.Map.of() : getOptions().validate(values);
 	}
 
+	public ShaderPackMenu getMenu(String language) throws IOException {
+		String code = language == null ? "en_us" : language.toLowerCase(java.util.Locale.ROOT);
+		if (!code.matches("[a-z]{2,3}_[a-z]{2}")) code = "en_us";
+		StringBuilder labels = new StringBuilder();
+		for (String locale : new java.util.LinkedHashSet<>(java.util.List.of("en_us", code))) {
+			String conventional = locale.substring(0, locale.indexOf('_') + 1)
+				+ locale.substring(locale.indexOf('_') + 1).toUpperCase(java.util.Locale.ROOT);
+			for (String file : java.util.List.of(locale, conventional)) {
+				Path path = shaderRoot.resolve("lang/" + file + ".lang");
+				if (!Files.isRegularFile(path)) continue;
+				if (!path.toRealPath().startsWith(shaderRoot.toRealPath())) throw new IOException("Language file escapes pack root");
+				try (var input = Files.newInputStream(path)) {
+					byte[] bytes = input.readNBytes(1024 * 1024 + 1);
+					if (bytes.length > 1024 * 1024) throw new IOException("Shader language file too large");
+					labels.append(new String(bytes, java.nio.charset.StandardCharsets.UTF_8)).append('\n');
+				}
+			}
+		}
+		return new ShaderPackMenu(getOptions(), propertiesText, labels.toString());
+	}
+
 	/**
 	 * Reads a program source file (e.g. {@code "final.fsh"}) relative to {@link #getShaderRoot()},
 	 * or empty if the pack doesn't have one.

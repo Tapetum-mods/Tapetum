@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Shader Pack Menus
+
+- Reduced menu opacity and unified the picker background and outlined controls around the supplied reference.
+- Added author-defined settings pages, validated profiles with inheritance, pack language labels and an all-settings view.
+- Discover boolean switches referenced across source files and author-marked bool/int/float constants.
+- Apply source settings before compilation, retain per-pack persistence and leave pack archives untouched.
+- Keep incomplete presets unavailable instead of applying only some of their settings. Conditional menu definitions
+  remain unsupported and fall back to the searchable all-settings view.
+- This updates settings access, not full world rendering. Geometry, shadows and in-game visual acceptance remain pending.
+
 ### Native Terrain Foundation
 
 - Added the missing terrain-cutout fallback, bounded quad-to-triangle index generation,
@@ -35,9 +45,8 @@
 ### Changed
 
 - Added semi-transparent, higher-opacity menus and the supplied Tapetum logo.
-- Added searchable per-pack define controls, boolean checkboxes, discrete numeric sliders,
-  value selectors, reset and paginated navigation. Profiles, authored submenus and const options
-  are not implemented yet. This does not add geometry or shadow rendering.
+- Added searchable per-pack controls, boolean checkboxes, discrete numeric sliders,
+  value selectors, reset and paginated navigation. This does not add geometry or shadow rendering.
 - The 1.16.5 branch now builds its own remapped experimental JAR with Java 21 and headless
   legacy API, matrix and archive checks. In-game startup and appearance remain unverified.
 

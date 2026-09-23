@@ -38,14 +38,18 @@ public class ShaderPackListWidget extends ObjectSelectionList<ShaderPackListWidg
 	}
 
 	@Override
+	public void setSelected(PackEntry entry) {
+		super.setSelected(entry);
+		if (selectionListener != null) selectionListener.run();
+	}
+
+	@Override
 	public int getRowWidth() {
 		return Math.min(ROW_WIDTH, Math.max(1, getWidth() - 24));
 	}
 
 	@Override
 	protected void extractListBackground(GuiGraphicsExtractor graphics) {
-		int left = (getWidth() - getRowWidth()) / 2 - 4;
-		graphics.fill(left, getY(), left + getRowWidth() + 8, getY() + getHeight(), TransparentWidgets.PANEL);
 	}
 
 	@Override
@@ -54,7 +58,7 @@ public class ShaderPackListWidget extends ObjectSelectionList<ShaderPackListWidg
 	@Override
 	protected void extractSelection(GuiGraphicsExtractor graphics, PackEntry entry, int color) {
 		graphics.fill(entry.getX(), entry.getY(), entry.getX() + entry.getWidth(),
-			entry.getY() + entry.getHeight(), 0xA6303B3D);
+			entry.getY() + entry.getHeight(), TransparentWidgets.HOVER);
 		graphics.outline(entry.getX(), entry.getY(), entry.getWidth(), entry.getHeight(), TransparentWidgets.ACCENT);
 	}
 
@@ -124,10 +128,10 @@ public class ShaderPackListWidget extends ObjectSelectionList<ShaderPackListWidg
 
 		@Override
 		public boolean mouseClicked(MouseButtonEvent mouseButtonEvent, boolean doubleClick) {
+			if (mouseButtonEvent.button() != 0) return false;
 			// AbstractSelectionList doesn't select on click by itself - it only routes the event to
 			// the entry under the cursor - so selection has to happen here.
 			ShaderPackListWidget.this.setSelected(this);
-			ShaderPackListWidget.this.selectionListener.run();
 			return true;
 		}
 

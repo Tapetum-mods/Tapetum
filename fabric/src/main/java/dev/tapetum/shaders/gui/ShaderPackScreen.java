@@ -51,7 +51,7 @@ public class ShaderPackScreen extends Screen {
 	private static final int HINT_COLOR = 0xFFA0A0A0;
 	private static final int SUBTITLE_COLOR = 0xFFBFBFBF;
 	private static final int WATERMARK_COLOR = 0xFF808080;
-	private static final int FOOTER_BAR_COLOR = 0xB8101418;
+	private static final int FOOTER_BAR_COLOR = TransparentWidgets.SHEET;
 	private static final int SEPARATOR_COLOR = 0xFF4C4C4C;
 
 	/** Where "Download Shaders" sends the player — the same catalogue Iris links to. */
@@ -367,6 +367,7 @@ public class ShaderPackScreen extends Screen {
 
 	@Override
 	public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+		guiGraphics.fill(0, HEADER_TOP - 2, width, height - FOOTER_BAR_TOP, TransparentWidgets.SHEET);
 		guiGraphics.centeredText(this.font, this.title, this.width / 2, TITLE_Y, 0xFFFFFFFF);
 		guiGraphics.centeredText(this.font, Component.translatable("tapetumshaders.gui.subtitle"),
 			this.width / 2, SUBTITLE_Y, SUBTITLE_COLOR);
