@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Native Terrain Foundation
+
+- Added the missing terrain-cutout fallback, bounded quad-to-triangle index generation,
+  typed GPU input reflection, matrix3 uniform uploads and idempotent program deletion.
+- Added headless preparation tests for simple terrain-only shaderpacks, rejecting incomplete
+  programs and unsupported passes/target requirements before GPU allocation.
+- The separate 1.16.5 branch now connects simple terrain-only packs to actual block VBO draws.
+  This draw hook is not present in 26.x yet. Complex packs still use experimental post-processing;
+  full geometry/G-buffers, shadows and in-game visual acceptance remain unfinished.
+
 ### Fixed
 
 - Fixed the missing pack-settings workflow: editable define options now persist per pack and
