@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Minecraft 1.20.1 Port
+
+- Build the exact Minecraft 1.20.1 release with Fabric API 0.92.12 and Java 21.
+- Keep version-specific production metadata and native API/remapping checks.
+- In-game acceptance and complete shaderpack rendering remain pending.
+
 ### Minecraft 1.20 Port
 
 - Target Minecraft 1.20 with Fabric API 0.83.0 and Java 21.
