@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Minecraft 1.18 Port
+
+- Compile and remap the standalone renderer against Minecraft 1.18 and Fabric API 0.46.6+1.18.
+- Verify the indexed terrain adapter, exact render hooks and runtime archive against this release.
+- This experimental Java 21 build still requires in-game validation and complete complex-pack rendering.
+
 ### Minecraft 1.17.1 Port
 
 - Build and remap against Minecraft 1.17.1 itself, with an exact runtime version constraint.
