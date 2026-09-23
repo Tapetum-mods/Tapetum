@@ -161,6 +161,6 @@ public final class ShaderPackOptionsScreen extends Screen {
         super.extractRenderState(graphics, x, y, tick);
     }
 
-    @Override public void onClose() { minecraft.setScreen(parent); }
+    @Override public void onClose() { minecraft.setScreenAndShow(parent); }
     @Override public boolean isPauseScreen() { return false; }
 }

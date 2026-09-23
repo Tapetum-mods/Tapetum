@@ -71,7 +71,7 @@ public final class NativeEngineContractTest {
             require(resourceClass("net/minecraft/client/gui/components/" + owner).methods.stream().anyMatch(m ->
                 m.name.equals("extractWidgetRenderState") && m.desc.equals(guiDescriptor)), "Exact widget paint target: " + owner);
         }
-        require(resourceClass("net/minecraft/client/Minecraft").methods.stream().anyMatch(m -> m.name.equals("setScreen")
+        require(resourceClass("net/minecraft/client/gui/Gui").methods.stream().anyMatch(m -> m.name.equals("setScreen")
             && m.desc.equals("(Lnet/minecraft/client/gui/screens/Screen;)V")), "Exact screen replacement hook");
         require(resourceClass("net/minecraft/client/gui/screens/options/OptionsSubScreen").fields.stream().anyMatch(f ->
             f.name.equals("lastScreen") && f.desc.equals("Lnet/minecraft/client/gui/screens/Screen;")), "Parent screen accessor target");
