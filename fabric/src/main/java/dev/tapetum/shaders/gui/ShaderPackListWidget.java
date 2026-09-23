@@ -1,7 +1,7 @@
 package dev.tapetum.shaders.gui;
 
 import net.minecraft.client.Minecraft;
-import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.network.chat.Component;
 
@@ -95,7 +95,7 @@ public class ShaderPackListWidget extends ObjectSelectionList<ShaderPackListWidg
 		public Component getNarration() { return label; }
 
 		@Override
-		public void render(PoseStack pose, int index, int y, int x, int rowWidth, int rowHeight,
+		public void render(GuiGraphics pose, int index, int y, int x, int rowWidth, int rowHeight,
 				int mouseX, int mouseY, boolean hovered, float partialTick) {
 			var font = ShaderPackListWidget.this.minecraft.font;
 			int textY = y + (rowHeight - font.lineHeight) / 2;
@@ -107,7 +107,7 @@ public class ShaderPackListWidget extends ObjectSelectionList<ShaderPackListWidg
 				text = font.plainSubstrByWidth(text, Math.max(0, available - font.width("..."))) + "...";
 			}
 
-			font.drawShadow(pose, text, x, textY, applied ? APPLIED_COLOR : NORMAL_COLOR);
+			pose.drawString(font, text, x, textY, applied ? APPLIED_COLOR : NORMAL_COLOR);
 		}
 
 		@Override

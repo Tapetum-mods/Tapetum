@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Minecraft 1.20 Port
+
+- Target Minecraft 1.20 with Fabric API 0.83.0 and Java 21.
+- Move shader list and screen rendering to the native GuiGraphics API.
+- Validate terrain hooks and remapped production metadata for this exact release.
+- In-game acceptance and complete shaderpack rendering remain pending.
+
 ### Minecraft 1.19.4 Port
 
 - Target Minecraft 1.19.4 with Fabric API 0.87.2 and Java 21.

@@ -3,7 +3,7 @@ package dev.tapetum.shaders.gui;
 import dev.tapetum.shaders.TapetumShaders;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
-import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
@@ -358,36 +358,36 @@ public class ShaderPackScreen extends Screen {
 	}
 
 	@Override
-	public void render(PoseStack pose, int mouseX, int mouseY, float partialTick) {
+	public void render(GuiGraphics pose, int mouseX, int mouseY, float partialTick) {
 		if (minecraft.level == null) renderBackground(pose);
 		packList.render(pose, mouseX, mouseY, partialTick);
 
-		drawCenteredString(pose, this.font, this.title, this.width / 2, TITLE_Y, 0xFFFFFFFF);
-		drawCenteredString(pose, this.font, net.minecraft.network.chat.Component.translatable("tapetumshaders.gui.subtitle"),
+		pose.drawCenteredString(this.font, this.title, this.width / 2, TITLE_Y, 0xFFFFFFFF);
+		pose.drawCenteredString(this.font, net.minecraft.network.chat.Component.translatable("tapetumshaders.gui.subtitle"),
 			this.width / 2, SUBTITLE_Y, SUBTITLE_COLOR);
 
 		// The drop hint belongs with the header buttons it sits under, above the list.
 		int hintY = HEADER_TOP + HEADER_BUTTON_HEIGHT * 2 + HEADER_BUTTON_GAP + 5;
-		drawCenteredString(pose, this.font,
+		pose.drawCenteredString(this.font,
 			net.minecraft.network.chat.Component.translatable("tapetumshaders.gui.drop_hint").withStyle(ChatFormatting.ITALIC),
 			this.width / 2, hintY, HINT_COLOR);
 
 		// Sits in the footer band so it cannot be pushed off-screen by a long pack list.
 		if (!statusMessage.getString().isEmpty()) {
-			drawCenteredString(pose, this.font, this.font.plainSubstrByWidth(statusMessage.getString(), width - 16),
+			pose.drawCenteredString(this.font, this.font.plainSubstrByWidth(statusMessage.getString(), width - 16),
 				this.width / 2, this.height - FOOTER_BAR_TOP - 12, 0xFFFFFFFF);
 		}
 
 		// Shaded band behind the action buttons, so they read as a footer rather than as widgets
 		// floating over the world.
 		int barTop = this.height - FOOTER_BAR_TOP;
-		fill(pose, 0, barTop, this.width, this.height, FOOTER_BAR_COLOR);
-		fill(pose, 0, barTop, this.width, barTop + 1, SEPARATOR_COLOR);
+		pose.fill(0, barTop, this.width, this.height, FOOTER_BAR_COLOR);
+		pose.fill(0, barTop, this.width, barTop + 1, SEPARATOR_COLOR);
 
 		// Bottom-left, level with the confirm row - so only draw it when the window is wide enough
 		// that it cannot run into the Cancel button.
 		if (4 + this.font.width(MOD_WATERMARK) + BUTTON_GAP < confirmRowLeft) {
-			drawString(pose, this.font, MOD_WATERMARK, 4, this.height - this.font.lineHeight - 3, WATERMARK_COLOR);
+			pose.drawString(this.font, MOD_WATERMARK, 4, this.height - this.font.lineHeight - 3, WATERMARK_COLOR);
 		}
 
 		super.render(pose, mouseX, mouseY, partialTick);
