@@ -83,7 +83,7 @@ public final class ShadowTargets implements AutoCloseable {
 			for (int i = 0; i < RESOLUTION * RESOLUTION; i++) {
 				depths.put(i, 1.0f);
 			}
-			GlStateManager._texImage2D(GL11.GL_TEXTURE_2D, 0, GL30.GL_DEPTH_COMPONENT24,
+			GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL30.GL_DEPTH_COMPONENT24,
 				RESOLUTION, RESOLUTION, 0, GL11.GL_DEPTH_COMPONENT, GL11.GL_FLOAT, pixels);
 		} finally {
 			// Off-heap, so freed explicitly and in a finally: a driver error must not leak a megabyte.
@@ -107,7 +107,7 @@ public final class ShadowTargets implements AutoCloseable {
 			for (int i = 0; i < bytes; i++) {
 				pixels.put(i, (byte) 0xFF);
 			}
-			GlStateManager._texImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, RESOLUTION, RESOLUTION, 0,
+			GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, RESOLUTION, RESOLUTION, 0,
 				GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, pixels);
 		} finally {
 			MemoryUtil.memFree(pixels);

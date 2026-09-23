@@ -2,13 +2,16 @@
 
 ## Unreleased
 
-### Minecraft 1.16.5 work in progress
+### Minecraft 1.16.5 experimental port
 
 - Added a dedicated legacy branch with its own common/ and fabric/ sources.
 - Selected the remapping Loom plugin, official game mappings and the 1.16 Fabric API modules.
 - Began adapting camera/render hooks, key bindings, legacy matrices and OpenGL state calls.
 - Declared a Java 21 runtime baseline. The legacy UI, uniforms and headless contracts remain unfinished.
-- This branch does not compile yet and does not publish an installable artifact.
+- Fixed 36 legacy compilation errors in GUI, uniforms, matrix rotations and texture uploads.
+- Build and remapping now pass; production mixin selectors are verified in intermediary namespace.
+- Added a logging provider and translation/scale matrix regression checks.
+- The experimental JAR requires Java 21. In-game startup and faithful shader rendering remain unverified.
 
 ### Fixed
 
@@ -61,8 +64,8 @@
 
 - Faithful in-world rendering is not complete: world geometry passes, real shadow maps and
   other shaderpack features still require implementation and visual validation.
-- Versions older than 26.1.2 are not supported by the current artifacts. Custom dimension mappings
-  are also unfinished; vanilla dimension selection is only one part of dimension compatibility.
+- This branch targets only Minecraft 1.16.5 with Java 21. Other legacy versions need separate ports.
+  Custom dimension mappings are unfinished; vanilla dimension selection is only part of compatibility.
 - Builds and headless tests do not prove shaderpack visual compatibility. No Minecraft window
   or GPU test was launched for this update.
 - Modrinth-managed JARs must be imported through the launcher. Direct replacements can cause

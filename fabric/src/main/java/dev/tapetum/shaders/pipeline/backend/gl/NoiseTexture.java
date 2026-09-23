@@ -63,7 +63,7 @@ public final class NoiseTexture implements AutoCloseable {
 				block[i] = (byte) 0xFF;
 			}
 			pixels.put(block).flip();
-			GlStateManager._texImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, RESOLUTION, RESOLUTION, 0,
+			GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, RESOLUTION, RESOLUTION, 0,
 				GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, pixels);
 		} finally {
 			MemoryUtil.memFree(pixels);

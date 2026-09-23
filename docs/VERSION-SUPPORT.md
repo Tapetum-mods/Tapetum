@@ -6,7 +6,7 @@ Git branch using `common/` and `fabric/`; older multi-version builds are histori
 
 | Version | Current state | Remaining work |
 |---|---|---|
-| 1.16.5 | Not ported | Legacy game APIs, mappings, Java baseline and renderer integration |
+| 1.16.5 | Experimental remapped JAR builds; Java 21 | In-game startup, modern menu backport and faithful world rendering |
 | 1.17.x through 1.20.x | Not ported | Version-family adapters and separate tested artifacts |
 | 1.21.x before 1.21.11 | Not ported | Version-family adapters and separate tested artifacts |
 | 1.21.11 | Historical prototype only | Resolve Loom/remapping setup and develop a standalone port |

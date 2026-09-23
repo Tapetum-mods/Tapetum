@@ -15,9 +15,9 @@ public class TapetumShadersClient implements ClientModInitializer {
     public void onInitializeClient() {
         var category = "key.categories.tapetumshaders";
         var open = KeyBindingHelper.registerKeyBinding(new KeyMapping(
-            "key.tapetumshaders.open_shaderpack_screen", InputConstants.KEY_O, category));
+            "key.tapetumshaders.open_shaderpack_screen", org.lwjgl.glfw.GLFW.GLFW_KEY_O, category));
         var toggle = KeyBindingHelper.registerKeyBinding(new KeyMapping(
-            "key.tapetumshaders.toggle_shaders", InputConstants.KEY_K, category));
+            "key.tapetumshaders.toggle_shaders", org.lwjgl.glfw.GLFW.GLFW_KEY_K, category));
         ClientLifecycleEvents.CLIENT_STARTED.register(client -> {
             TapetumShaders.LOGGER.info("Rendering through {}", TapetumShaders.getShaderEngine().name());
             TapetumShaders.getPipelineManager().reload();

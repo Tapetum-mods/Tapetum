@@ -2,20 +2,21 @@
 
 # Tapetum Shaders
 
-## This branch: Minecraft 1.16.5 port in progress
+## This branch: Minecraft 1.16.5 experimental port
 
-**Not buildable or installable yet. No 1.16.5 JAR is available.**
-This branch publishes the actual migration work, not a compatibility claim.
-The 26.x build results described below do not apply to this branch.
+**Buildable experimental JAR; startup and shader appearance have not been tested in game.**
+This branch contains a real legacy adapter, not a renamed 26.x artifact.
 
 - Target: Minecraft 1.16.5, Fabric API 0.42.0+1.16 and Fabric Loader 0.19.3.
 - Uses Loom's remapping plugin and official Mojang mappings, not the non-obfuscated 26.x setup.
-- Java 21 is the intended minimum runtime; Java 8 is not supported by this port.
-- Legacy camera/render hooks, key bindings, matrix conversion and GL calls are being adapted.
-- Remaining compile blockers include the shader picker UI and version-specific player/biome uniforms.
-- Headless contracts still need legacy API/remapped-artifact coverage. In-game validation has not run.
+- Java 21 is the minimum runtime; Java 8 is not supported by this port.
+- Adapted camera/render hooks, key bindings, matrix conversion, GL texture uploads, shader picker and biome/player uniforms.
+- Build, common unit tests and 197 headless engine checks pass, plus 13 frame-state checks.
+- Production checks verify intermediary mixin names, exact game metadata and embedded logging.
+- GPU regression sources compile, but GPU tests and Minecraft were not launched.
+- The newer 26.1.2 menu design and editable pack options have not been backported yet.
 
-The branch is intentionally visible for development review. Do not install a renamed 26.x JAR.
+Use only this branch's remapped production JAR with a matching Fabric 1.16.5 instance.
 
 An open-source Fabric shader engine with no Iris or Sodium dependency.
 Tapetum owns its renderer. Existing LGPL licensing and attribution remain unchanged.
@@ -50,9 +51,8 @@ runtime dependencies, branding, release numbers or compatibility claims.
 ## Repository layout
 
 - `common/`: Minecraft-independent parsing, configuration, expressions and unit tests (Java 21).
-- `fabric/`: Fabric entry points, renderer, Minecraft hooks, resources and headless contract tests (Java 25).
+- `fabric/`: Fabric entry points, renderer, Minecraft hooks, resources and headless contract tests (Java 21).
 - `docs/`: architecture, development, compatibility and verification records.
-- `research/`: retired experiments, excluded from production source sets.
 - `tools/`: terminal-only import diagnostics and artifact verification.
 
 There are no parallel `mc26.*` modules or `shared/` source tree in a version branch.
@@ -60,7 +60,7 @@ Switch branches to build another Minecraft version; do not change a version numb
 
 ## Building
 
-Use the checked-in Gradle wrapper with JDK 21 and JDK 25 installed. The Gradle daemon uses 21.
+Use the checked-in Gradle wrapper with JDK 21 installed. The Gradle daemon uses 21.
 
 ```sh
 ./gradlew clean build :fabric:compileGlTestJava --console=plain

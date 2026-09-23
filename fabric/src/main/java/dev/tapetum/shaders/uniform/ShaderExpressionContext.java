@@ -77,7 +77,9 @@ public final class ShaderExpressionContext implements EvaluationContext {
 		if (level == null || camera == null) {
 			return -1.0f;
 		}
-		return biomeId(level.getBiome(BlockPos.containing(camera.position())).getRegisteredName());
+		var biome = level.getBiome(new BlockPos(camera.position()));
+		var key = level.registryAccess().registryOrThrow(net.minecraft.core.Registry.BIOME_REGISTRY).getKey(biome);
+		return key == null ? -1.0f : biomeId(key.toString());
 	}
 
 	private float biomeId(String registeredName) {

@@ -21,7 +21,7 @@ public final class NativeEngineContractTest {
     public static void main(String[] args) throws Exception {
         try (var mod = new JarFile(args[0])) {
             JsonObject metadata = json(mod, "fabric.mod.json");
-            require(args.length == 3, "Expected artifact, Minecraft version and mod version");
+            require(args.length == 4, "Expected dev artifact, Minecraft version, mod version and remapped artifact");
             require(metadata.getAsJsonObject("depends").get("minecraft").getAsString().equals(args[1]),
                 "Minecraft dependency is exactly this branch's target");
             require(metadata.get("version").getAsString().equals(args[2]),
@@ -29,7 +29,8 @@ public final class NativeEngineContractTest {
             String metadataText = new String(read(mod, "fabric.mod.json"), StandardCharsets.UTF_8);
             require(!metadataText.toLowerCase().contains("iris"), "No Iris metadata in fabric.mod.json");
             require(!metadataText.toLowerCase().contains("sodium"), "No Sodium metadata in fabric.mod.json");
-            require(metadata.getAsJsonObject("depends").keySet().equals(Set.of("fabricloader", "minecraft", "java")),
+            require(metadata.getAsJsonObject("depends").entrySet().stream().map(java.util.Map.Entry::getKey)
+                .collect(java.util.stream.Collectors.toSet()).equals(Set.of("fabricloader", "minecraft", "java")),
                 "Only platform dependencies are required");
             require(mod.getJarEntry("dev/tapetum/shaders/pipeline/ShaderEngine.class") != null,
                 "Tapetum ShaderEngine is packaged");
@@ -52,21 +53,52 @@ public final class NativeEngineContractTest {
             for (String name : registered) {
                 require(mod.getJarEntry("dev/tapetum/shaders/mixin/" + name + ".class") != null, "Packaged mixin " + name);
             }
-            ClassNode video = resourceClass("net/minecraft/client/gui/screens/options/VideoSettingsScreen");
-            long calls = video.methods.stream().filter(m -> m.name.equals("addOptions"))
+            ClassNode video = resourceClass("net/minecraft/client/gui/screens/VideoSettingsScreen");
+            long calls = video.methods.stream().filter(m -> m.name.equals("init"))
                 .flatMap(m -> java.util.Arrays.stream(m.instructions.toArray()))
                 .filter(i -> i instanceof MethodInsnNode call && call.owner.equals("net/minecraft/client/gui/components/OptionsList")
-                    && call.name.equals("addSmall") && call.desc.equals("([Lnet/minecraft/client/OptionInstance;)V"))
+                    && call.name.equals("addSmall") && call.desc.equals("([Lnet/minecraft/client/Option;)V"))
                 .count();
-            require(calls == 3, "Video settings hook targets the third array, not all three sections");
+            require(calls == 1, "Video settings hook targets exactly one legacy option array");
             ClassNode initializer = new ClassNode();
             new ClassReader(read(mod, "dev/tapetum/shaders/TapetumShadersClient.class")).accept(initializer, 0);
             long keys = initializer.methods.stream().flatMap(m -> java.util.Arrays.stream(m.instructions.toArray()))
-                .filter(i -> i instanceof MethodInsnNode call && call.name.equals("registerKeyMapping")).count();
+                .filter(i -> i instanceof MethodInsnNode call && call.name.equals("registerKeyBinding")).count();
             require(keys == 2, "Standalone O/K controls registered without another renderer");
             verifyRenderHooks(mod);
             verifyGlBridge(mod);
         }
+        try (var production = new JarFile(args[3])) {
+            require(production.getJarEntry("META-INF/jars/slf4j-simple-2.0.17.jar") != null,
+                "Legacy runtime includes a logger provider so failures are not silently discarded");
+            JsonObject metadata = json(production, "fabric.mod.json");
+            require(metadata.get("version").getAsString().equals(args[2]), "Remapped artifact preserves its version");
+            require(metadata.getAsJsonObject("depends").get("minecraft").getAsString().equals(args[1]),
+                "Remapped artifact preserves its exact Minecraft target");
+            for (String type : java.util.List.of("MixinLevelRenderer", "MixinVideoSettingsScreen")) {
+                var node = new ClassNode();
+                new ClassReader(read(production, "dev/tapetum/shaders/mixin/" + type + ".class")).accept(node, 0);
+                require(node.invisibleAnnotations.stream().filter(a -> a.desc.equals("Lorg/spongepowered/asm/mixin/Mixin;"))
+                    .flatMap(a -> ((java.util.List<?>) a.values.get(a.values.indexOf("value") + 1)).stream())
+                    .allMatch(target -> ((Type) target).getInternalName().startsWith("net/minecraft/class_")),
+                    "Production mixin target uses intermediary names: " + type);
+                for (var method : node.methods) {
+                    if (method.visibleAnnotations == null) continue;
+                    for (var annotation : method.visibleAnnotations) {
+                        if (!annotation.desc.startsWith("Lorg/spongepowered/asm/mixin/injection/")) continue;
+                        int key = annotation.values.indexOf("method");
+                        if (key >= 0) require(((java.util.List<?>) annotation.values.get(key + 1)).stream()
+                            .allMatch(target -> target.toString().startsWith("method_")), "Production injection selector remapped");
+                    }
+                }
+            }
+        }
+        var translated = LegacyMatrices.convert(com.mojang.math.Matrix4f.createTranslateMatrix(3, -5, 7));
+        var position = translated.transform(new org.joml.Vector4f(1, 2, 3, 1));
+        require(position.equals(new org.joml.Vector4f(4, -3, 10, 1)), "Legacy translation is not transposed");
+        var scaled = LegacyMatrices.convert(com.mojang.math.Matrix4f.createScaleMatrix(2, 3, 4));
+        require(scaled.transform(new org.joml.Vector4f(1, 2, 3, 1)).equals(new org.joml.Vector4f(2, 6, 12, 1)),
+            "Legacy scale conversion retains axis order");
         FrameStateContractTest.run();
         System.out.println("Native Tapetum engine contract: " + checks + " checks passed (headless)");
     }
@@ -110,7 +142,7 @@ public final class NativeEngineContractTest {
 
     private static void verifyGlBridge(JarFile mod) throws IOException {
         var methods = new HashSet<String>();
-        String bridge = "dev/tapetum/shaders/compat/GlStateManager";
+        String bridge = "com/mojang/blaze3d/platform/GlStateManager";
         String type = bridge;
         while (type != null) {
             var node = resourceClass(type);
@@ -143,7 +175,7 @@ public final class NativeEngineContractTest {
     }
 
     private static JsonObject json(JarFile jar, String name) throws IOException {
-        return JsonParser.parseString(new String(read(jar, name), StandardCharsets.UTF_8)).getAsJsonObject();
+        return new JsonParser().parse(new String(read(jar, name), StandardCharsets.UTF_8)).getAsJsonObject();
     }
 
     private static byte[] read(JarFile jar, String name) throws IOException {

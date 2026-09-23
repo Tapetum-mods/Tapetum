@@ -40,6 +40,8 @@ dependencies {
     include("org.joml:joml:1.10.8")
     implementation("org.slf4j:slf4j-api:2.0.17")
     include("org.slf4j:slf4j-api:2.0.17")
+    runtimeOnly("org.slf4j:slf4j-simple:2.0.17")
+    include("org.slf4j:slf4j-simple:2.0.17")
 
     // The version-independent core is compiled in rather than shipped as a separate jar, so each
     // version's jar stays a single self-contained file.
@@ -115,11 +117,12 @@ dependencies {
     add(contractTest.compileOnlyConfigurationName, "com.google.errorprone:error_prone_annotations:2.41.0")
 }
 tasks.register<JavaExec>("nativeEngineContractTest") {
-    dependsOn(tasks.jar, tasks.named(contractTest.classesTaskName))
+    dependsOn(tasks.jar, tasks.named("remapJar"), tasks.named(contractTest.classesTaskName))
     classpath = contractTest.runtimeClasspath
     mainClass.set("dev.tapetum.shaders.compat.NativeEngineContractTest")
     javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(21)) })
-    args(tasks.jar.get().archiveFile.get().asFile.absolutePath, minecraftVersion, project.version.toString())
+    args(tasks.jar.get().archiveFile.get().asFile.absolutePath, minecraftVersion, project.version.toString(),
+        tasks.named<org.gradle.api.tasks.bundling.AbstractArchiveTask>("remapJar").get().archiveFile.get().asFile.absolutePath)
 }
 tasks.check { dependsOn("nativeEngineContractTest") }
 

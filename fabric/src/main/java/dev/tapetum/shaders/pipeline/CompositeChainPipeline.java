@@ -23,7 +23,6 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
-import com.mojang.math.Axis;
 import dev.tapetum.shaders.shaderpack.glsl.ColorTextureFormat;
 import dev.tapetum.shaders.shaderpack.uniform.CustomUniforms;
 import dev.tapetum.shaders.uniform.ShaderExpressionContext;
@@ -582,7 +581,7 @@ public final class CompositeChainPipeline implements RenderingPipeline {
 		frameValues.put("eyeBrightness.y", smoothedSkyLight);
 		frameValues.put("isEyeInWater", (float) FrameState.eyeInWater());
 		frameValues.put("blindness", effectStrength(MobEffects.BLINDNESS));
-		frameValues.put("darknessFactor", effectStrength(MobEffects.DARKNESS));
+		frameValues.put("darknessFactor", 0.0f); // Darkness does not exist in 1.16.5.
 		frameValues.put("nightVision", effectStrength(MobEffects.NIGHT_VISION));
 		frameValues.put("viewWidth", (float) targets.width());
 		frameValues.put("viewHeight", (float) targets.height());
@@ -606,11 +605,11 @@ public final class CompositeChainPipeline implements RenderingPipeline {
 
 		program.setUniform("blindness", effectStrength(MobEffects.BLINDNESS));
 		program.setUniform("nightVision", effectStrength(MobEffects.NIGHT_VISION));
-		program.setUniform("darknessFactor", effectStrength(MobEffects.DARKNESS));
+		program.setUniform("darknessFactor", 0.0f);
 
-		program.setUniform("screenBrightness", minecraft.options.gamma().get().floatValue());
+		program.setUniform("screenBrightness", (float) minecraft.options.gamma);
 		program.setUniform("isRightHanded",
-			minecraft.options.mainHand().get() == HumanoidArm.RIGHT ? 1 : 0);
+			minecraft.options.mainHand == HumanoidArm.RIGHT ? 1 : 0);
 
 		// Wetness trails rainStrength rather than tracking it: packs use it to dry surfaces off
 		// gradually once rain stops, and a value that snaps looks worse than none at all.
@@ -637,7 +636,7 @@ public final class CompositeChainPipeline implements RenderingPipeline {
 		int blockLight = 0;
 		int skyLight = 0;
 		if (level != null && camera != null) {
-			BlockPos eye = BlockPos.containing(camera.getEyePosition(1.0f));
+			BlockPos eye = new BlockPos(camera.getEyePosition(1.0f));
 			var lighting = level.getLightEngine();
 			blockLight = lighting.getLayerListener(LightLayer.BLOCK).getLightValue(eye) * LIGHT_SCALE;
 			skyLight = lighting.getLayerListener(LightLayer.SKY).getLightValue(eye) * LIGHT_SCALE;
@@ -653,7 +652,7 @@ public final class CompositeChainPipeline implements RenderingPipeline {
 		// read as "shadows fully faded", which several packs use to cancel their sunlight term.
 		program.setUniform("shadowFade", 1.0f);
 		program.setUniform("blindFactor", effectStrength(MobEffects.BLINDNESS));
-		program.setUniform("darknessLightFactor", effectStrength(MobEffects.DARKNESS));
+		program.setUniform("darknessLightFactor", 0.0f);
 
 		// The raw celestial angle, as distinct from the pack-facing sunAngle - packs use this one to
 		// redo their own sun maths, so it must not be the shifted value.
@@ -675,7 +674,7 @@ public final class CompositeChainPipeline implements RenderingPipeline {
 	 * How strongly an effect applies, 0 to 1, ramping down over its final second the way Iris does so
 	 * the screen does not snap back when the effect expires.
 	 */
-	private static float effectStrength(net.minecraft.core.Holder<MobEffect> effect) {
+	private static float effectStrength(MobEffect effect) {
 		if (!(Minecraft.getInstance().getCameraEntity() instanceof LivingEntity living)) {
 			return 0.0f;
 		}
@@ -704,7 +703,7 @@ public final class CompositeChainPipeline implements RenderingPipeline {
 		// angle, so it stays fixed while they travel.
 		Vector4f up = new Vector4f(0.0f, CELESTIAL_DISTANCE, 0.0f, 0.0f);
 		new Matrix4f(FrameState.modelView())
-			.rotate(Axis.YP.rotationDegrees(-90.0f))
+			.rotateY((float) Math.toRadians(-90.0f))
 			.transform(up);
 		program.setUniform("upPosition", up.x, up.y, up.z);
 
@@ -737,9 +736,9 @@ public final class CompositeChainPipeline implements RenderingPipeline {
 		float skyAngle = shadowAngle < 0.25f ? shadowAngle + 0.75f : shadowAngle - 0.25f;
 
 		Matrix4f modelView = new Matrix4f()
-			.rotate(Axis.XP.rotationDegrees(90.0f))
-			.rotate(Axis.ZP.rotationDegrees(skyAngle * -360.0f))
-			.rotate(Axis.XP.rotationDegrees(sunPathRotation));
+			.rotateX((float) Math.toRadians(90.0f))
+			.rotateZ((float) Math.toRadians(skyAngle * -360.0f))
+			.rotateX((float) Math.toRadians(sunPathRotation));
 
 		Matrix4f projection = new Matrix4f()
 			.setOrthoSymmetric(shadowDistance * 2.0f, shadowDistance * 2.0f, SHADOW_NEAR, SHADOW_FAR);
@@ -761,9 +760,9 @@ public final class CompositeChainPipeline implements RenderingPipeline {
 	private Vector4f celestialPosition(float skyAngle, float distance) {
 		Vector4f position = new Vector4f(0.0f, distance, 0.0f, 0.0f);
 		new Matrix4f(FrameState.modelView())
-			.rotate(Axis.YP.rotationDegrees(-90.0f))
-			.rotate(Axis.ZP.rotationDegrees(sunPathRotation))
-			.rotate(Axis.XP.rotationDegrees(CelestialAngles.celestialRotationDegrees(skyAngle)))
+			.rotateY((float) Math.toRadians(-90.0f))
+			.rotateZ((float) Math.toRadians(sunPathRotation))
+			.rotateX((float) Math.toRadians(CelestialAngles.celestialRotationDegrees(skyAngle)))
 			.transform(position);
 		return position;
 	}
