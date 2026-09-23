@@ -56,10 +56,10 @@ public final class NativeEngineContractTest {
             ClassNode video = resourceClass("net/minecraft/client/gui/screens/VideoSettingsScreen");
             long calls = video.methods.stream().filter(m -> m.name.equals("init"))
                 .flatMap(m -> java.util.Arrays.stream(m.instructions.toArray()))
-                .filter(i -> i instanceof MethodInsnNode call && call.owner.equals("net/minecraft/client/gui/components/OptionsList")
-                    && call.name.equals("addSmall") && call.desc.equals("([Lnet/minecraft/client/Option;)V"))
+                .filter(i -> i instanceof MethodInsnNode call && call.owner.equals("net/minecraft/client/gui/components/Button")
+                    && call.name.equals("<init>") && call.desc.equals("(IIIILnet/minecraft/network/chat/Component;Lnet/minecraft/client/gui/components/Button$OnPress;)V"))
                 .count();
-            require(calls == 1, "Video settings hook targets exactly one legacy option array");
+            require(calls == 1, "Video settings footer hook targets exactly one native button");
             ClassNode initializer = new ClassNode();
             new ClassReader(read(mod, "dev/tapetum/shaders/TapetumShadersClient.class")).accept(initializer, 0);
             long keys = initializer.methods.stream().flatMap(m -> java.util.Arrays.stream(m.instructions.toArray()))
@@ -113,9 +113,9 @@ public final class NativeEngineContractTest {
             require(vertex.fields.stream().anyMatch(f -> f.name.equals(field.name) && f.desc.equals(field.desc)),
                 "Terrain shadow field exists: " + field.name);
         }
-        require(vertex.methods.stream().anyMatch(m -> m.name.equals("drawChunkLayer") && m.desc.equals("()V")),
+        require(vertex.methods.stream().anyMatch(m -> m.name.equals("draw") && m.desc.equals("()V")),
             "Exact legacy terrain draw target exists");
-        var nativeDraw = vertex.methods.stream().filter(m -> m.name.equals("drawChunkLayer") && m.desc.equals("()V"))
+        var nativeDraw = vertex.methods.stream().filter(m -> m.name.equals("draw") && m.desc.equals("()V"))
             .findFirst().orElseThrow();
         require(java.util.Arrays.stream(nativeDraw.instructions.toArray()).filter(i -> i instanceof MethodInsnNode call
             && call.owner.equals("com/mojang/blaze3d/systems/RenderSystem") && call.name.equals("drawElements")

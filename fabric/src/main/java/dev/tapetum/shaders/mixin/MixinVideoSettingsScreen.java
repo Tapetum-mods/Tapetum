@@ -1,36 +1,34 @@
 package dev.tapetum.shaders.mixin;
 
 import dev.tapetum.shaders.gui.ShaderPackScreen;
-import net.minecraft.client.Option;
-import net.minecraft.client.Options;
-import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.VideoSettingsScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
-import java.util.Arrays;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArgs;
+import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/** Adds one action to the existing scrollable video options list. */
+/** Share the footer with the native Done action without replacing its cleanup callback. */
 @Mixin(VideoSettingsScreen.class)
 public abstract class MixinVideoSettingsScreen extends Screen {
     protected MixinVideoSettingsScreen(Component title) { super(title); }
 
-    @ModifyArg(method = "init", at = @At(value = "INVOKE",
-        target = "Lnet/minecraft/client/gui/components/OptionsList;addSmall([Lnet/minecraft/client/Option;)V"), index = 0)
-    private Option[] tapetum$appendShaderpacksEntry(Option[] vanillaOptions) {
-        Screen parent = this;
-        Option entry = new Option("options.tapetumshaders.shaderpacks") {
-            @Override public AbstractWidget createButton(Options options, int x, int y, int width) {
-                return new Button(x, y, width, 20, new TranslatableComponent("options.tapetumshaders.shaderpacks"),
-                    button -> minecraft.setScreen(new ShaderPackScreen(parent)));
-            }
-        };
-        Option[] result = Arrays.copyOf(vanillaOptions, vanillaOptions.length + 1);
-        result[vanillaOptions.length] = entry;
-        return result;
+    @ModifyArgs(method = "init", at = @At(value = "INVOKE", target =
+        "Lnet/minecraft/client/gui/components/Button;<init>(IIIILnet/minecraft/network/chat/Component;Lnet/minecraft/client/gui/components/Button$OnPress;)V"))
+    private void tapetum$makeFooterSpace(Args args) {
+        args.set(0, width / 2 + 5);
+        args.set(2, Math.max(1, Math.min(150, width / 2 - 15)));
+    }
+
+    @Inject(method = "init", at = @At("RETURN"))
+    private void tapetum$addShaderpacks(CallbackInfo ci) {
+        int buttonWidth = Math.max(1, Math.min(150, width / 2 - 15));
+        addRenderableWidget(new Button(width / 2 - 5 - buttonWidth, height - 27, buttonWidth, 20,
+            Component.translatable("options.tapetumshaders.shaderpacks"),
+            button -> minecraft.setScreen(new ShaderPackScreen(this))));
     }
 }

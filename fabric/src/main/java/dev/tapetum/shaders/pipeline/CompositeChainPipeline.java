@@ -607,9 +607,9 @@ public final class CompositeChainPipeline implements RenderingPipeline {
 		program.setUniform("nightVision", effectStrength(MobEffects.NIGHT_VISION));
 		program.setUniform("darknessFactor", 0.0f);
 
-		program.setUniform("screenBrightness", (float) minecraft.options.gamma);
+		program.setUniform("screenBrightness", minecraft.options.gamma().get().floatValue());
 		program.setUniform("isRightHanded",
-			minecraft.options.mainHand == HumanoidArm.RIGHT ? 1 : 0);
+			minecraft.options.mainHand().get() == HumanoidArm.RIGHT ? 1 : 0);
 
 		// Wetness trails rainStrength rather than tracking it: packs use it to dry surfaces off
 		// gradually once rain stops, and a value that snaps looks worse than none at all.

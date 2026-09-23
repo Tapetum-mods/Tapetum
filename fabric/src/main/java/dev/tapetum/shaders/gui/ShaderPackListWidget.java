@@ -53,13 +53,13 @@ public class ShaderPackListWidget extends ObjectSelectionList<ShaderPackListWidg
 	public void refill(List<String> packNames, String appliedPack, String selectedPack) {
 		clearEntries();
 
-		PackEntry noneEntry = new PackEntry(null, new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.none_selected"),
+		PackEntry noneEntry = new PackEntry(null, net.minecraft.network.chat.Component.translatable("tapetumshaders.gui.none_selected"),
 			appliedPack == null);
 		addEntry(noneEntry);
 		PackEntry toSelect = selectedPack == null ? noneEntry : null;
 
 		for (String packName : packNames) {
-			PackEntry entry = new PackEntry(packName, new net.minecraft.network.chat.TextComponent(packName),
+			PackEntry entry = new PackEntry(packName, net.minecraft.network.chat.Component.literal(packName),
 				Objects.equals(packName, appliedPack));
 			addEntry(entry);
 

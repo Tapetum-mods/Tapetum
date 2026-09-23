@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Minecraft 1.19 Port
+
+- Adapt component factories and option-value accessors to the 1.19 APIs.
+- Add a shaderpacks footer action while preserving the native Done callback and scrollable video settings.
+- Target the new vertex-buffer draw method and select the real index type for both sequential and sorted buffers.
+- Validate injection points and intermediary remapping against Minecraft 1.19. Java 21 is required;
+  live-world rendering and full shaderpack fidelity remain unverified.
+
 ### Minecraft 1.18.2 Port
 
 - Compile and remap against Minecraft 1.18.2 with Fabric API 0.77.0+1.18.2.

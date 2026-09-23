@@ -34,7 +34,7 @@ public class TapetumShadersClient implements ClientModInitializer {
                 boolean applied = TapetumShaders.saveConfigAndReload();
                 String message = !applied ? "tapetumshaders.chat.shaders_failed"
                     : config.areShadersEnabled() ? "tapetumshaders.chat.shaders_on" : "tapetumshaders.chat.shaders_off";
-                client.player.displayClientMessage(new net.minecraft.network.chat.TranslatableComponent(message), false);
+                client.player.displayClientMessage(net.minecraft.network.chat.Component.translatable(message), false);
             }
         });
     }

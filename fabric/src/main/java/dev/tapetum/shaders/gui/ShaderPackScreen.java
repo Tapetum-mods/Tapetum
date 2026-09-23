@@ -83,11 +83,11 @@ public class ShaderPackScreen extends Screen {
 	 * failing to compile is a line in the log: the screen would keep showing the pack as selected
 	 * while rendering stayed vanilla, which reads as "applying does nothing".
 	 */
-	private Component statusMessage = net.minecraft.network.chat.TextComponent.EMPTY;
+	private Component statusMessage = net.minecraft.network.chat.Component.empty();
 	private Component failureTooltip;
 
 	public ShaderPackScreen(Screen parent) {
-		super(new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.title"));
+		super(net.minecraft.network.chat.Component.translatable("tapetumshaders.gui.title"));
 		this.parent = parent;
 		this.pendingShadersEnabled = TapetumShaders.getConfig().areShadersEnabled();
 	}
@@ -127,10 +127,10 @@ public class ShaderPackScreen extends Screen {
 
 		this.addRenderableWidget(new Button(headerX, HEADER_TOP + HEADER_BUTTON_HEIGHT + HEADER_BUTTON_GAP,
 			HEADER_BUTTON_WIDTH, HEADER_BUTTON_HEIGHT,
-			new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.download_shaders"),
+			net.minecraft.network.chat.Component.translatable("tapetumshaders.gui.download_shaders"),
 			button -> VersionCompat.openUri(SHADER_DOWNLOAD_URL),
 			(button, pose, x, y) -> renderTooltip(pose,
-				new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.download_shaders.tooltip"), x, y)));
+				net.minecraft.network.chat.Component.translatable("tapetumshaders.gui.download_shaders.tooltip"), x, y)));
 
 		packList = this.addWidget(
 			new ShaderPackListWidget(this.minecraft, this.width, listHeight, headerBottom, LIST_ROW_HEIGHT));
@@ -146,12 +146,12 @@ public class ShaderPackScreen extends Screen {
 		int actionRightX = this.width / 2 + BUTTON_GAP / 2;
 
 		this.addRenderableWidget(new Button(actionLeftX, actionRowY, actionWidth, BUTTON_HEIGHT,
-			new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.open_folder"),
+			net.minecraft.network.chat.Component.translatable("tapetumshaders.gui.open_folder"),
 			button -> VersionCompat.openPath(TapetumShaders.getShaderpacksDirectory())));
 
 		packSettingsButton = this.addRenderableWidget(
 			new Button(actionRightX, actionRowY, actionWidth, BUTTON_HEIGHT,
-				new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.pack_settings"), button -> {
+				net.minecraft.network.chat.Component.translatable("tapetumshaders.gui.pack_settings"), button -> {
 					if (hasPendingChanges() && !applyChanges()) return;
 					TapetumShaders.getShaderEngine().openPackOptions(this).ifPresent(options -> {
 						returningFromEngine = true;
@@ -165,16 +165,16 @@ public class ShaderPackScreen extends Screen {
 		confirmRowLeft = confirmX;
 
 		this.addRenderableWidget(new Button(confirmX, confirmRowY, confirmWidth, BUTTON_HEIGHT,
-			new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.cancel"), button -> this.onClose()));
+			net.minecraft.network.chat.Component.translatable("tapetumshaders.gui.cancel"), button -> this.onClose()));
 
 		applyButton = this.addRenderableWidget(new Button(confirmX + confirmWidth + BUTTON_GAP, confirmRowY,
-			confirmWidth, BUTTON_HEIGHT, new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.apply"),
+			confirmWidth, BUTTON_HEIGHT, net.minecraft.network.chat.Component.translatable("tapetumshaders.gui.apply"),
 			button -> applyChanges(), (button, pose, x, y) -> {
 				if (failureTooltip != null) renderTooltip(pose, failureTooltip, x, y);
 			}));
 
 		this.addRenderableWidget(new Button(confirmX + (confirmWidth + BUTTON_GAP) * 2, confirmRowY,
-			confirmWidth, BUTTON_HEIGHT, new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.done"), button -> {
+			confirmWidth, BUTTON_HEIGHT, net.minecraft.network.chat.Component.translatable("tapetumshaders.gui.done"), button -> {
 				if (hasPendingChanges()) {
 					if (!applyChanges()) return;
 				}
@@ -191,12 +191,12 @@ public class ShaderPackScreen extends Screen {
 	 */
 	private Component shadersToggleLabel() {
 		if (TapetumShaders.getShaderpackManager().getAvailablePacks().isEmpty()) {
-			return new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.shaders_enabled",
-				new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.no_packs"));
+			return net.minecraft.network.chat.Component.translatable("tapetumshaders.gui.shaders_enabled",
+				net.minecraft.network.chat.Component.translatable("tapetumshaders.gui.no_packs"));
 		}
 
-		return new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.shaders_enabled",
-			new net.minecraft.network.chat.TranslatableComponent(pendingShadersEnabled ? "tapetumshaders.gui.on" : "tapetumshaders.gui.off"));
+		return net.minecraft.network.chat.Component.translatable("tapetumshaders.gui.shaders_enabled",
+			net.minecraft.network.chat.Component.translatable(pendingShadersEnabled ? "tapetumshaders.gui.on" : "tapetumshaders.gui.off"));
 	}
 
 	/** Rescans the shaderpacks folder and rebuilds the rows, keeping {@code selectedPack} picked. */
@@ -244,10 +244,10 @@ public class ShaderPackScreen extends Screen {
 		refreshPackList(packList.getSelectedPackName());
 
 		statusMessage = applied ? describeResult(packList.getSelectedPackName())
-			: new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.status.failed", packList.getSelectedPackName())
+			: net.minecraft.network.chat.Component.translatable("tapetumshaders.gui.status.failed", packList.getSelectedPackName())
 				.withStyle(ChatFormatting.RED);
 		failureTooltip = TapetumShaders.getShaderEngine().lastFailure()
-			.map(error -> new net.minecraft.network.chat.TextComponent(String.valueOf(error.getMessage()))).orElse(null);
+			.map(error -> net.minecraft.network.chat.Component.literal(String.valueOf(error.getMessage()))).orElse(null);
 		return applied;
 	}
 
@@ -257,19 +257,19 @@ public class ShaderPackScreen extends Screen {
 	 */
 	private Component describeResult(String appliedPack) {
 		if (appliedPack == null) {
-			return new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.status.none").withStyle(ChatFormatting.GRAY);
+			return net.minecraft.network.chat.Component.translatable("tapetumshaders.gui.status.none").withStyle(ChatFormatting.GRAY);
 		}
 
 		if (!TapetumShaders.getConfig().areShadersEnabled()) {
-			return new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.status.disabled").withStyle(ChatFormatting.GRAY);
+			return net.minecraft.network.chat.Component.translatable("tapetumshaders.gui.status.disabled").withStyle(ChatFormatting.GRAY);
 		}
 
 		if (TapetumShaders.getPipelineManager().getPipeline().isShaderPackActive()) {
-			return new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.status.active", appliedPack)
+			return net.minecraft.network.chat.Component.translatable("tapetumshaders.gui.status.active", appliedPack)
 				.withStyle(ChatFormatting.YELLOW);
 		}
 
-		return new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.status.failed", appliedPack)
+		return net.minecraft.network.chat.Component.translatable("tapetumshaders.gui.status.failed", appliedPack)
 			.withStyle(ChatFormatting.RED);
 	}
 
@@ -278,7 +278,7 @@ public class ShaderPackScreen extends Screen {
 	 * cleared rather than left sitting under a selection it no longer describes.
 	 */
 	private void onSelectionChanged() {
-		statusMessage = net.minecraft.network.chat.TextComponent.EMPTY;
+		statusMessage = net.minecraft.network.chat.Component.empty();
 		refreshApplyState();
 	}
 
@@ -364,13 +364,13 @@ public class ShaderPackScreen extends Screen {
 		packList.render(pose, mouseX, mouseY, partialTick);
 
 		drawCenteredString(pose, this.font, this.title, this.width / 2, TITLE_Y, 0xFFFFFFFF);
-		drawCenteredString(pose, this.font, new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.subtitle"),
+		drawCenteredString(pose, this.font, net.minecraft.network.chat.Component.translatable("tapetumshaders.gui.subtitle"),
 			this.width / 2, SUBTITLE_Y, SUBTITLE_COLOR);
 
 		// The drop hint belongs with the header buttons it sits under, above the list.
 		int hintY = HEADER_TOP + HEADER_BUTTON_HEIGHT * 2 + HEADER_BUTTON_GAP + 5;
 		drawCenteredString(pose, this.font,
-			new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.drop_hint").withStyle(ChatFormatting.ITALIC),
+			net.minecraft.network.chat.Component.translatable("tapetumshaders.gui.drop_hint").withStyle(ChatFormatting.ITALIC),
 			this.width / 2, hintY, HINT_COLOR);
 
 		// Sits in the footer band so it cannot be pushed off-screen by a long pack list.
