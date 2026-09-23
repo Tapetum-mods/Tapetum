@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Minecraft 1.19.3 Port
+
+- Target the exact Minecraft 1.19.3 release with Fabric API 0.76.1 and Java 21.
+- Adapt native JOML matrices, biome registry keys, button builders and tooltips.
+- Verify the terrain draw, menu injection and production remapping against this release.
+- In-game acceptance, the modern settings UI and complete shaderpack rendering remain pending.
+
 ### Minecraft 1.19.2 Port
 
 - Compile and remap against Minecraft 1.19.2 with Fabric API 0.77.0+1.19.2 and exact artifact metadata.

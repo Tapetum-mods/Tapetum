@@ -56,8 +56,8 @@ public final class NativeEngineContractTest {
             ClassNode video = resourceClass("net/minecraft/client/gui/screens/VideoSettingsScreen");
             long calls = video.methods.stream().filter(m -> m.name.equals("init"))
                 .flatMap(m -> java.util.Arrays.stream(m.instructions.toArray()))
-                .filter(i -> i instanceof MethodInsnNode call && call.owner.equals("net/minecraft/client/gui/components/Button")
-                    && call.name.equals("<init>") && call.desc.equals("(IIIILnet/minecraft/network/chat/Component;Lnet/minecraft/client/gui/components/Button$OnPress;)V"))
+                .filter(i -> i instanceof MethodInsnNode call && call.owner.equals("net/minecraft/client/gui/components/Button$Builder")
+                    && call.name.equals("bounds") && call.desc.equals("(IIII)Lnet/minecraft/client/gui/components/Button$Builder;"))
                 .count();
             require(calls == 1, "Video settings footer hook targets exactly one native button");
             ClassNode initializer = new ClassNode();
@@ -95,10 +95,10 @@ public final class NativeEngineContractTest {
                 }
             }
         }
-        var translated = LegacyMatrices.convert(com.mojang.math.Matrix4f.createTranslateMatrix(3, -5, 7));
+        var translated = LegacyMatrices.convert(new org.joml.Matrix4f().translation(3, -5, 7));
         var position = translated.transform(new org.joml.Vector4f(1, 2, 3, 1));
         require(position.equals(new org.joml.Vector4f(4, -3, 10, 1)), "Legacy translation is not transposed");
-        var scaled = LegacyMatrices.convert(com.mojang.math.Matrix4f.createScaleMatrix(2, 3, 4));
+        var scaled = LegacyMatrices.convert(new org.joml.Matrix4f().scaling(2, 3, 4));
         require(scaled.transform(new org.joml.Vector4f(1, 2, 3, 1)).equals(new org.joml.Vector4f(2, 6, 12, 1)),
             "Legacy scale conversion retains axis order");
         FrameStateContractTest.run();
@@ -127,7 +127,7 @@ public final class NativeEngineContractTest {
             && Boolean.TRUE.equals(a.values.get(a.values.indexOf("cancellable") + 1))), "Native draw can replace the vanilla draw");
         var renderer = resourceClass("net/minecraft/client/renderer/LevelRenderer");
         require(renderer.methods.stream().anyMatch(m -> m.name.equals("renderChunkLayer")
-            && m.desc.equals("(Lnet/minecraft/client/renderer/RenderType;Lcom/mojang/blaze3d/vertex/PoseStack;DDDLcom/mojang/math/Matrix4f;)V")),
+            && m.desc.equals("(Lnet/minecraft/client/renderer/RenderType;Lcom/mojang/blaze3d/vertex/PoseStack;DDDLorg/joml/Matrix4f;)V")),
             "Exact chunk-layer wrapper target exists");
         var layers = new ClassNode();
         new ClassReader(read(mod, "dev/tapetum/shaders/mixin/MixinLevelRenderer.class")).accept(layers, 0);

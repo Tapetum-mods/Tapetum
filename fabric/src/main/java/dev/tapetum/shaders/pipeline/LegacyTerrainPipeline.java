@@ -89,7 +89,7 @@ public final class LegacyTerrainPipeline implements RenderingPipeline {
         }
     }
 
-    public void enterLayer(RenderType type, com.mojang.math.Matrix4f modelView, com.mojang.math.Matrix4f projection) {
+    public void enterLayer(RenderType type, org.joml.Matrix4f modelView, org.joml.Matrix4f projection) {
         if (layer != null) throw new IllegalStateException("Nested terrain layer");
         layerModelView.set(LegacyMatrices.convert(modelView));
         layerProjection.set(LegacyMatrices.convert(projection));

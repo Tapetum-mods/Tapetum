@@ -1,7 +1,7 @@
 package dev.tapetum.shaders.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Matrix4f;
+import org.joml.Matrix4f;
 import dev.tapetum.shaders.TapetumShaders;
 import dev.tapetum.shaders.compat.LegacyMatrices;
 import dev.tapetum.shaders.compat.VersionCompat;

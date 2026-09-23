@@ -18,7 +18,7 @@ public abstract class MixinVideoSettingsScreen extends Screen {
     protected MixinVideoSettingsScreen(Component title) { super(title); }
 
     @ModifyArgs(method = "init", at = @At(value = "INVOKE", target =
-        "Lnet/minecraft/client/gui/components/Button;<init>(IIIILnet/minecraft/network/chat/Component;Lnet/minecraft/client/gui/components/Button$OnPress;)V"))
+        "Lnet/minecraft/client/gui/components/Button$Builder;bounds(IIII)Lnet/minecraft/client/gui/components/Button$Builder;"))
     private void tapetum$makeFooterSpace(Args args) {
         args.set(0, width / 2 + 5);
         args.set(2, Math.max(1, Math.min(150, width / 2 - 15)));
@@ -27,8 +27,8 @@ public abstract class MixinVideoSettingsScreen extends Screen {
     @Inject(method = "init", at = @At("RETURN"))
     private void tapetum$addShaderpacks(CallbackInfo ci) {
         int buttonWidth = Math.max(1, Math.min(150, width / 2 - 15));
-        addRenderableWidget(new Button(width / 2 - 5 - buttonWidth, height - 27, buttonWidth, 20,
-            Component.translatable("options.tapetumshaders.shaderpacks"),
-            button -> minecraft.setScreen(new ShaderPackScreen(this))));
+        addRenderableWidget(Button.builder(Component.translatable("options.tapetumshaders.shaderpacks"),
+            button -> minecraft.setScreen(new ShaderPackScreen(this)))
+            .bounds(width / 2 - 5 - buttonWidth, height - 27, buttonWidth, 20).build());
     }
 }
