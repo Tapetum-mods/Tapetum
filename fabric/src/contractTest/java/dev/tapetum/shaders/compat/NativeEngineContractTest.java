@@ -113,16 +113,21 @@ public final class NativeEngineContractTest {
             require(vertex.fields.stream().anyMatch(f -> f.name.equals(field.name) && f.desc.equals(field.desc)),
                 "Terrain shadow field exists: " + field.name);
         }
-        require(vertex.methods.stream().anyMatch(m -> m.name.equals("draw") && m.desc.equals("(Lcom/mojang/math/Matrix4f;I)V")),
+        require(vertex.methods.stream().anyMatch(m -> m.name.equals("drawChunkLayer") && m.desc.equals("()V")),
             "Exact legacy terrain draw target exists");
+        var nativeDraw = vertex.methods.stream().filter(m -> m.name.equals("drawChunkLayer") && m.desc.equals("()V"))
+            .findFirst().orElseThrow();
+        require(java.util.Arrays.stream(nativeDraw.instructions.toArray()).filter(i -> i instanceof MethodInsnNode call
+            && call.owner.equals("com/mojang/blaze3d/systems/RenderSystem") && call.name.equals("drawElements")
+            && call.desc.equals("(III)V")).count() == 1, "Exactly one indexed draw injection point exists");
         var draw = mixin.methods.stream().filter(m -> m.name.equals("tapetum$drawTerrain")).findFirst().orElseThrow();
-        require(draw.desc.equals("(Lcom/mojang/math/Matrix4f;ILorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V"),
+        require(draw.desc.equals("(Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V"),
             "Terrain hook arguments match game draw method");
         require(draw.visibleAnnotations.stream().anyMatch(a -> a.values != null && a.values.contains("cancellable")
             && Boolean.TRUE.equals(a.values.get(a.values.indexOf("cancellable") + 1))), "Native draw can replace the vanilla draw");
         var renderer = resourceClass("net/minecraft/client/renderer/LevelRenderer");
         require(renderer.methods.stream().anyMatch(m -> m.name.equals("renderChunkLayer")
-            && m.desc.equals("(Lnet/minecraft/client/renderer/RenderType;Lcom/mojang/blaze3d/vertex/PoseStack;DDD)V")),
+            && m.desc.equals("(Lnet/minecraft/client/renderer/RenderType;Lcom/mojang/blaze3d/vertex/PoseStack;DDDLcom/mojang/math/Matrix4f;)V")),
             "Exact chunk-layer wrapper target exists");
         var layers = new ClassNode();
         new ClassReader(read(mod, "dev/tapetum/shaders/mixin/MixinLevelRenderer.class")).accept(layers, 0);

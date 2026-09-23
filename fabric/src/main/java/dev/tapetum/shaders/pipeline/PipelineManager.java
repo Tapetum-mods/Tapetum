@@ -57,11 +57,11 @@ public class PipelineManager implements ShaderEngine {
 		return current;
 	}
 
-	public boolean drawTerrain(int vbo, int vertices, com.mojang.blaze3d.vertex.VertexFormat format,
-			com.mojang.math.Matrix4f modelView, int mode) {
+	public boolean drawTerrain(int vbo, int indices, int count, int indexType,
+			com.mojang.blaze3d.vertex.VertexFormat format, com.mojang.blaze3d.vertex.VertexFormat.Mode mode) {
 		if (!(current instanceof LegacyTerrainPipeline terrain)) return false;
 		try {
-			return terrain.draw(vbo, vertices, format, modelView, mode);
+			return terrain.draw(vbo, indices, count, indexType, format, mode);
 		} catch (RuntimeException error) {
 			lastFailure = error;
 			current = VanillaRenderingPipeline.INSTANCE;

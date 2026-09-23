@@ -22,7 +22,7 @@ public final class FullScreenTriangle implements AutoCloseable {
 		int previous = GL11.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING);
 		org.lwjgl.opengl.GL30.glBindVertexArray(vertexArrayId);
 		try {
-			GlStateManager._drawArrays(GL30.GL_TRIANGLES, 0, 3);
+			GL30.glDrawArrays(GL30.GL_TRIANGLES, 0, 3);
 		} finally {
 			org.lwjgl.opengl.GL30.glBindVertexArray(previous);
 		}

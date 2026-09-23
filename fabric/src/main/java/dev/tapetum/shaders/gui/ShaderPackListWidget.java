@@ -92,6 +92,9 @@ public class ShaderPackListWidget extends ObjectSelectionList<ShaderPackListWidg
 		}
 
 		@Override
+		public Component getNarration() { return label; }
+
+		@Override
 		public void render(PoseStack pose, int index, int y, int x, int rowWidth, int rowHeight,
 				int mouseX, int mouseY, boolean hovered, float partialTick) {
 			var font = ShaderPackListWidget.this.minecraft.font;

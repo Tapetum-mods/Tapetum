@@ -104,7 +104,7 @@ public final class GlProgram implements AutoCloseable {
 
 	private static int compileStage(String debugName, int stageType, String stageLabel, String source) throws GlShaderCompileException {
 		int shader = GlStateManager.glCreateShader(stageType);
-		GlStateManager.glShaderSource(shader, source);
+		GlStateManager.glShaderSource(shader, java.util.List.of(source));
 		GlStateManager.glCompileShader(shader);
 
 		if (GlStateManager.glGetShaderi(shader, GL20.GL_COMPILE_STATUS) == GL20.GL_FALSE) {

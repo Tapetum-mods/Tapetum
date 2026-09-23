@@ -118,14 +118,14 @@ public class ShaderPackScreen extends Screen {
 
 		int headerX = this.width / 2 - HEADER_BUTTON_WIDTH / 2;
 
-		shadersToggleButton = this.addButton(new Button(headerX, HEADER_TOP, HEADER_BUTTON_WIDTH,
+		shadersToggleButton = this.addRenderableWidget(new Button(headerX, HEADER_TOP, HEADER_BUTTON_WIDTH,
 			HEADER_BUTTON_HEIGHT, shadersToggleLabel(), button -> {
 				pendingShadersEnabled = !pendingShadersEnabled;
 				button.setMessage(shadersToggleLabel());
 				refreshApplyState();
 			}));
 
-		this.addButton(new Button(headerX, HEADER_TOP + HEADER_BUTTON_HEIGHT + HEADER_BUTTON_GAP,
+		this.addRenderableWidget(new Button(headerX, HEADER_TOP + HEADER_BUTTON_HEIGHT + HEADER_BUTTON_GAP,
 			HEADER_BUTTON_WIDTH, HEADER_BUTTON_HEIGHT,
 			new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.download_shaders"),
 			button -> VersionCompat.openUri(SHADER_DOWNLOAD_URL),
@@ -145,11 +145,11 @@ public class ShaderPackScreen extends Screen {
 		int actionLeftX = this.width / 2 - actionWidth - BUTTON_GAP / 2;
 		int actionRightX = this.width / 2 + BUTTON_GAP / 2;
 
-		this.addButton(new Button(actionLeftX, actionRowY, actionWidth, BUTTON_HEIGHT,
+		this.addRenderableWidget(new Button(actionLeftX, actionRowY, actionWidth, BUTTON_HEIGHT,
 			new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.open_folder"),
 			button -> VersionCompat.openPath(TapetumShaders.getShaderpacksDirectory())));
 
-		packSettingsButton = this.addButton(
+		packSettingsButton = this.addRenderableWidget(
 			new Button(actionRightX, actionRowY, actionWidth, BUTTON_HEIGHT,
 				new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.pack_settings"), button -> {
 					if (hasPendingChanges() && !applyChanges()) return;
@@ -164,16 +164,16 @@ public class ShaderPackScreen extends Screen {
 		int confirmX = this.width / 2 - (confirmWidth * 3 + BUTTON_GAP * 2) / 2;
 		confirmRowLeft = confirmX;
 
-		this.addButton(new Button(confirmX, confirmRowY, confirmWidth, BUTTON_HEIGHT,
+		this.addRenderableWidget(new Button(confirmX, confirmRowY, confirmWidth, BUTTON_HEIGHT,
 			new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.cancel"), button -> this.onClose()));
 
-		applyButton = this.addButton(new Button(confirmX + confirmWidth + BUTTON_GAP, confirmRowY,
+		applyButton = this.addRenderableWidget(new Button(confirmX + confirmWidth + BUTTON_GAP, confirmRowY,
 			confirmWidth, BUTTON_HEIGHT, new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.apply"),
 			button -> applyChanges(), (button, pose, x, y) -> {
 				if (failureTooltip != null) renderTooltip(pose, failureTooltip, x, y);
 			}));
 
-		this.addButton(new Button(confirmX + (confirmWidth + BUTTON_GAP) * 2, confirmRowY,
+		this.addRenderableWidget(new Button(confirmX + (confirmWidth + BUTTON_GAP) * 2, confirmRowY,
 			confirmWidth, BUTTON_HEIGHT, new net.minecraft.network.chat.TranslatableComponent("tapetumshaders.gui.done"), button -> {
 				if (hasPendingChanges()) {
 					if (!applyChanges()) return;

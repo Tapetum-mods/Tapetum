@@ -19,6 +19,32 @@ public final class LegacyTerrainMesh implements AutoCloseable {
     private int indices;
     private int capacity;
 
+    /** Retain Minecraft's indices, including its back-to-front translucent ordering. */
+    public void drawIndexed(int buffer, int elementBuffer, int count, int type) {
+        if (buffer <= 0 || elementBuffer <= 0 || count < 0
+                || (type != GL11.GL_UNSIGNED_BYTE && type != GL11.GL_UNSIGNED_SHORT && type != GL11.GL_UNSIGNED_INT)) {
+            throw new IllegalArgumentException("Invalid terrain draw buffers or index type");
+        }
+        if (count == 0) return;
+        int previousVao = GL11.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING);
+        int previousArray = GL11.glGetInteger(GL15.GL_ARRAY_BUFFER_BINDING);
+        try {
+            if (vao == 0) vao = GL30.glGenVertexArrays();
+            GL30.glBindVertexArray(vao);
+            GlStateManager._glBindBuffer(GL15.GL_ARRAY_BUFFER, buffer);
+            GlStateManager._glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
+            attribute(0, 3, GL11.GL_FLOAT, false, 0);
+            attribute(1, 4, GL11.GL_UNSIGNED_BYTE, true, 12);
+            attribute(2, 2, GL11.GL_FLOAT, false, 16);
+            attribute(3, 2, GL11.GL_SHORT, false, 24);
+            attribute(4, 3, GL11.GL_BYTE, true, 28);
+            GL11.glDrawElements(GL11.GL_TRIANGLES, count, type, 0L);
+        } finally {
+            GL30.glBindVertexArray(previousVao);
+            GlStateManager._glBindBuffer(GL15.GL_ARRAY_BUFFER, previousArray);
+        }
+    }
+
     public void draw(int buffer, int vertices) {
         int count = QuadIndices.indexCount(vertices);
         if (count == 0) return;

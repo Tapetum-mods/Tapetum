@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Minecraft 1.17 Port
+
+- Adapt the standalone Fabric build, video settings entry and render hooks to Minecraft 1.17.
+- Preserve Minecraft's indexed terrain buffers and translucent ordering, with per-layer matrices
+  and the game's chunk-offset uniform instead of the 1.16.5 quad draw contract.
+- Verify exact draw targets, vertex fields, frame hooks, remapped selectors and archive metadata.
+- Require Java 21. This experimental build has not been launched in-game; complex shaderpack
+  rendering and the modern pack-settings UI are not complete.
+
 ### Native Terrain Milestone
 
 - Added a scoped 1.16.5 terrain-only pipeline that retains pack programs and replaces actual

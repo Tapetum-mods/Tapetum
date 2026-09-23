@@ -7,7 +7,7 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.phys.Vec3;
 
-/** Minecraft 1.16.5 platform calls, remapped from Mojang to Fabric names at build time. */
+/** Minecraft 1.17 platform calls, remapped from Mojang to Fabric names at build time. */
 public final class VersionCompat {
     private VersionCompat() { }
 

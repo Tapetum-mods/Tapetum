@@ -1,6 +1,6 @@
 package dev.tapetum.shaders.pipeline;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import dev.tapetum.shaders.compat.LegacyMatrices;
@@ -14,7 +14,6 @@ import net.minecraft.client.renderer.RenderType;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 
 /** First native terrain path: single-color, terrain-only packs with fully supplied inputs. */
@@ -42,6 +41,8 @@ public final class LegacyTerrainPipeline implements RenderingPipeline {
     private final Map<GbufferProgram, GlProgram> programs;
     private final LegacyTerrainMesh mesh = new LegacyTerrainMesh();
     private GbufferProgram layer;
+    private final Matrix4f layerModelView = new Matrix4f();
+    private final Matrix4f layerProjection = new Matrix4f();
     private boolean closed;
 
     private LegacyTerrainPipeline(Map<GbufferProgram, GlProgram> programs) {
@@ -88,8 +89,10 @@ public final class LegacyTerrainPipeline implements RenderingPipeline {
         }
     }
 
-    public void enterLayer(RenderType type) {
+    public void enterLayer(RenderType type, com.mojang.math.Matrix4f modelView, com.mojang.math.Matrix4f projection) {
         if (layer != null) throw new IllegalStateException("Nested terrain layer");
+        layerModelView.set(LegacyMatrices.convert(modelView));
+        layerProjection.set(LegacyMatrices.convert(projection));
         layer = type == RenderType.solid() ? GbufferProgram.TERRAIN_SOLID
             : type == RenderType.cutout() || type == RenderType.cutoutMipped() || type == RenderType.tripwire()
                 ? GbufferProgram.TERRAIN_CUTOUT
@@ -99,25 +102,27 @@ public final class LegacyTerrainPipeline implements RenderingPipeline {
     public void leaveLayer() { layer = null; }
 
     /** Returns false before any draw when the vanilla format/layer is not owned by this path. */
-    public boolean draw(int vbo, int vertices, VertexFormat format, com.mojang.math.Matrix4f modelView, int mode) {
+    public boolean draw(int vbo, int indices, int count, int indexType, VertexFormat format, VertexFormat.Mode mode) {
         GlProgram program = layer == null ? null : programs.get(layer);
         if (closed || program == null || format != DefaultVertexFormat.BLOCK || format.getVertexSize() != 32
-                || mode != GL11.GL_QUADS || vbo <= 0 || vertices == 0) return false;
-        QuadIndices.indexCount(vertices);
-        Matrix4f model = LegacyMatrices.convert(modelView);
+                || mode != VertexFormat.Mode.QUADS || vbo <= 0 || indices <= 0 || count == 0) return false;
+        var vanilla = RenderSystem.getShader();
+        if (vanilla == null || vanilla.CHUNK_OFFSET == null) return false;
+        var offset = vanilla.CHUNK_OFFSET.getFloatBuffer();
+        Matrix4f model = new Matrix4f(layerModelView).translate(offset.get(0), offset.get(1), offset.get(2));
         Matrix3f normal = new Matrix3f(model).invert().transpose();
         if (!model.isFinite() || !normal.isFinite()) return false;
         try (GlRenderState state = GlRenderState.capture()) {
-            int atlas = boundTexture(0);
-            int light = boundTexture(2);
+            int atlas = RenderSystem.getShaderTexture(0);
+            int light = RenderSystem.getShaderTexture(2);
             program.use();
             program.bindSampler("texture", 0, atlas);
             program.bindSampler("tapetum_texture", 0, atlas);
             program.bindSampler("gtexture", 0, atlas);
             program.bindSampler("lightmap", 2, light);
             program.setUniform("tapetum_ModelViewMatrix", model);
-            program.setUniform("tapetum_ProjectionMatrix", FrameState.projection());
-            program.setUniform("tapetum_ModelViewProjectionMatrix", new Matrix4f(FrameState.projection()).mul(model));
+            program.setUniform("tapetum_ProjectionMatrix", layerProjection);
+            program.setUniform("tapetum_ModelViewProjectionMatrix", new Matrix4f(layerProjection).mul(model));
             program.setUniform("tapetum_NormalMatrix", normal);
             program.setUniform("tapetum_TextureMatrix[0]", new Matrix4f());
             program.setUniform("tapetum_TextureMatrix[1]", new Matrix4f().scaling(1f / 256f).translate(8, 8, 0));
@@ -127,14 +132,9 @@ public final class LegacyTerrainPipeline implements RenderingPipeline {
             program.setUniform("gbufferProjectionInverse", FrameState.projectionInverse());
             var camera = FrameState.cameraPosition();
             program.setUniform("cameraPosition", (float) camera.x, (float) camera.y, (float) camera.z);
-            mesh.draw(vbo, vertices);
+            mesh.drawIndexed(vbo, indices, count, indexType);
         }
         return true;
-    }
-
-    private static int boundTexture(int unit) {
-        GlStateManager._activeTexture(GL13.GL_TEXTURE0 + unit);
-        return GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
     }
 
     @Override public void beginLevelRendering() { layer = null; }
