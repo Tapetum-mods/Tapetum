@@ -9,7 +9,8 @@ Tapetum owns its renderer. Existing LGPL licensing and attribution remain unchan
 
 **Experimental: faithful shaderpack world rendering is not complete.** The current backend runs
 screen-space deferred/composite/final passes on approximate scene inputs. Real geometry passes,
-accurate G-buffers, shadows and authored pack settings remain under development.
+accurate G-buffers and shadows remain under development. Editable define settings are available;
+authored option submenus, profiles and const options are not implemented yet.
 A successful build or an activated pack is not proof of the pack's intended appearance.
 
 ## Versions and branches
@@ -18,7 +19,7 @@ Each Minecraft line has its own branch and contains only that line's sources and
 
 | Branch | Minecraft | State |
 |---|---|---|
-| [1.16.5](https://github.com/Tapetum-mods/Tapetum/tree/1.16.5) | 1.16.5 | Port in progress; does not build yet, no JAR |
+| [1.16.5](https://github.com/Tapetum-mods/Tapetum/tree/1.16.5) | 1.16.5 | Experimental remapped JAR builds; Java 21, in-game unverified |
 | [26.1](https://github.com/Tapetum-mods/Tapetum/tree/26.1) | 26.1.2 | Default development line |
 | [26.2](https://github.com/Tapetum-mods/Tapetum/tree/26.2) | 26.2 | Experimental native renderer |
 | [26.3](https://github.com/Tapetum-mods/Tapetum/tree/26.3) | 26.3 | Experimental, OpenGL only |
@@ -26,7 +27,7 @@ Each Minecraft line has its own branch and contains only that line's sources and
 
 The selected branch's exact target is in `gradle.properties`. The requested 1.16.5-26.3 range
 is a goal, not a support claim. See [version status](docs/VERSION-SUPPORT.md).
-The active branches are `1.16.5` (unfinished), `26.1`, `26.2`, `26.3` and `future`.
+The active branches are `1.16.5` (experimental), `26.1`, `26.2`, `26.3` and `future`.
 Completed work branches and the obsolete `main` branch are removed after their history is preserved.
 
 Each branch owns its game adapter, build dependencies and exact Minecraft target.

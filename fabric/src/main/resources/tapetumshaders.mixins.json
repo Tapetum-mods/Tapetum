@@ -5,7 +5,10 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "MixinLevelRenderer",
-    "MixinVideoSettingsScreen"
+    "AccessorOptionsSubScreen",
+    "MixinMinecraftScreen",
+    "MixinTransparentButton",
+    "MixinTransparentSlider"
   ],
   "injectors": {
     "defaultRequire": 1

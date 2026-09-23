@@ -25,6 +25,7 @@ public class TapetumConfig {
 	private boolean shadersEnabled;
 	private DynamicLightMode dynamicLightMode;
 	private boolean diagnosticTrace;
+	private final Properties packOptions = new Properties();
 
 	public TapetumConfig(Path propertiesPath) {
 		this.propertiesPath = propertiesPath;
@@ -61,10 +62,14 @@ public class TapetumConfig {
 		this.dynamicLightMode = DynamicLightMode.parse(
 			properties.getProperty("dynamicLights"), DynamicLightMode.OFF);
 		this.diagnosticTrace = "true".equalsIgnoreCase(properties.getProperty("diagnosticTrace"));
+		packOptions.clear();
+		for (String key : properties.stringPropertyNames())
+			if (key.startsWith("packOption.")) packOptions.setProperty(key, properties.getProperty(key));
 	}
 
 	public void save() throws IOException {
 		Properties properties = new Properties();
+		properties.putAll(packOptions);
 		properties.setProperty("shaderPack", shaderPackName == null ? "" : shaderPackName);
 		properties.setProperty("shadersEnabled", Boolean.toString(shadersEnabled));
 		properties.setProperty("dynamicLights", dynamicLightMode.name());
@@ -78,6 +83,25 @@ public class TapetumConfig {
 
 	public Optional<String> getShaderPackName() {
 		return Optional.ofNullable(shaderPackName);
+	}
+
+	private static String optionPrefix(String pack) {
+		return "packOption." + java.util.Base64.getUrlEncoder().withoutPadding()
+			.encodeToString(pack.getBytes(java.nio.charset.StandardCharsets.UTF_8)) + ".";
+	}
+
+	public java.util.Map<String, String> getPackOptions(String pack) {
+		String prefix = optionPrefix(pack);
+		var values = new java.util.LinkedHashMap<String, String>();
+		for (String key : packOptions.stringPropertyNames())
+			if (key.startsWith(prefix)) values.put(key.substring(prefix.length()), packOptions.getProperty(key));
+		return java.util.Map.copyOf(values);
+	}
+
+	public void setPackOptions(String pack, java.util.Map<String, String> values) {
+		String prefix = optionPrefix(pack);
+		packOptions.keySet().removeIf(key -> key.toString().startsWith(prefix));
+		values.forEach((key, value) -> packOptions.setProperty(prefix + key, value));
 	}
 
 	public void setShaderPackName(String name) {

@@ -51,7 +51,7 @@ public class ShaderPackScreen extends Screen {
 	private static final int HINT_COLOR = 0xFFA0A0A0;
 	private static final int SUBTITLE_COLOR = 0xFFBFBFBF;
 	private static final int WATERMARK_COLOR = 0xFF808080;
-	private static final int FOOTER_BAR_COLOR = 0x66000000;
+	private static final int FOOTER_BAR_COLOR = 0xB8101418;
 	private static final int SEPARATOR_COLOR = 0xFF4C4C4C;
 
 	/** Where "Download Shaders" sends the player — the same catalogue Iris links to. */
@@ -103,7 +103,7 @@ public class ShaderPackScreen extends Screen {
 		}
 
 		int headerBottom = HEADER_TOP
-			+ HEADER_BUTTON_HEIGHT * 2 + HEADER_BUTTON_GAP
+			+ HEADER_BUTTON_HEIGHT + HEADER_BUTTON_GAP
 			+ HEADER_HINT_HEIGHT;
 		int listBottom = this.height - FOOTER_HEIGHT;
 		int listHeight = Math.max(LIST_ROW_HEIGHT, listBottom - headerBottom);
@@ -126,13 +126,6 @@ public class ShaderPackScreen extends Screen {
 			.bounds(headerX, HEADER_TOP, HEADER_BUTTON_WIDTH, HEADER_BUTTON_HEIGHT)
 			.build());
 
-		this.addRenderableWidget(Button.builder(Component.translatable("tapetumshaders.gui.download_shaders"),
-				button -> VersionCompat.openUri(SHADER_DOWNLOAD_URL))
-			.bounds(headerX, HEADER_TOP + HEADER_BUTTON_HEIGHT + HEADER_BUTTON_GAP,
-				HEADER_BUTTON_WIDTH, HEADER_BUTTON_HEIGHT)
-			.tooltip(Tooltip.create(Component.translatable("tapetumshaders.gui.download_shaders.tooltip")))
-			.build());
-
 		packList = this.addRenderableWidget(
 			new ShaderPackListWidget(this.minecraft, this.width, listHeight, headerBottom, LIST_ROW_HEIGHT));
 		packList.setSelectionListener(this::onSelectionChanged);
@@ -153,11 +146,11 @@ public class ShaderPackScreen extends Screen {
 
 		packSettingsButton = this.addRenderableWidget(
 			Button.builder(Component.translatable("tapetumshaders.gui.pack_settings"), button -> {
-					if (hasPendingChanges() && !applyChanges()) return;
-					TapetumShaders.getShaderEngine().openPackOptions(this).ifPresent(options -> {
-						returningFromEngine = true;
-						this.minecraft.setScreenAndShow(options);
-					});
+					String selected = packList.getSelectedPackName();
+					if (selected == null) return;
+					var options = TapetumShaders.getPipelineManager().openPackOptions(this, selected);
+					if (options.isPresent()) this.minecraft.setScreenAndShow(options.get());
+					else statusMessage = Component.translatable("tapetumshaders.gui.options.load_failed");
 				})
 				.bounds(actionRightX, actionRowY, actionWidth, BUTTON_HEIGHT)
 				.build());
@@ -187,6 +180,9 @@ public class ShaderPackScreen extends Screen {
 			.build());
 
 		refreshApplyState();
+		children().forEach(child -> {
+			if (child instanceof Button button) TransparentWidgets.style(button);
+		});
 	}
 
 	/**
@@ -300,6 +296,7 @@ public class ShaderPackScreen extends Screen {
 	private void refreshApplyState() {
 		if (packSettingsButton != null) {
 			packSettingsButton.active = packList != null && packList.getSelectedPackName() != null;
+			packSettingsButton.setTooltip(null);
 		}
 		if (applyButton != null) {
 			applyButton.active = true;
@@ -364,26 +361,25 @@ public class ShaderPackScreen extends Screen {
 	}
 
 	@Override
-	public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
-		// extractBackground() blurs the world behind the screen, and that blur can only be
-		// requested once per frame - two screens' backgrounds landing in the same frame crash with
-		// "Can only blur once per frame". extractTransparentBackground() is a plain gradient fill
-		// instead, so it doesn't touch that shared per-frame resource at all.
-		extractTransparentBackground(guiGraphics);
+	public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
+		if (minecraft.level == null) extractPanorama(graphics, delta);
+	}
 
+	@Override
+	public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
 		guiGraphics.centeredText(this.font, this.title, this.width / 2, TITLE_Y, 0xFFFFFFFF);
 		guiGraphics.centeredText(this.font, Component.translatable("tapetumshaders.gui.subtitle"),
 			this.width / 2, SUBTITLE_Y, SUBTITLE_COLOR);
 
 		// The drop hint belongs with the header buttons it sits under, above the list.
-		int hintY = HEADER_TOP + HEADER_BUTTON_HEIGHT * 2 + HEADER_BUTTON_GAP + 5;
+		int hintY = HEADER_TOP + HEADER_BUTTON_HEIGHT + HEADER_BUTTON_GAP + 5;
 		guiGraphics.centeredText(this.font,
 			Component.translatable("tapetumshaders.gui.drop_hint").withStyle(ChatFormatting.ITALIC),
 			this.width / 2, hintY, HINT_COLOR);
 
 		// Sits in the footer band so it cannot be pushed off-screen by a long pack list.
-		if (statusMessage != Component.empty()) {
-			guiGraphics.centeredText(this.font, statusMessage,
+		if (!statusMessage.getString().isEmpty()) {
+			guiGraphics.centeredText(this.font, TransparentWidgets.fit(statusMessage.getString(), this.width - 16),
 				this.width / 2, this.height - FOOTER_BAR_TOP - 12, 0xFFFFFFFF);
 		}
 

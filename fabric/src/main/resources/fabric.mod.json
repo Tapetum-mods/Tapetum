@@ -3,6 +3,7 @@
   "id": "tapetumshaders",
   "version": "${version}",
   "name": "Tapetum Shaders",
+  "icon": "assets/tapetumshaders/textures/gui/sprites/logo.png",
   "description": "Experimental open-source Tapetum shader engine. Full world shader rendering is still in development.",
   "authors": [
     "Raik"
