@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Exact Minecraft 26.1 Target
+
+- Build this branch against Minecraft 26.1 and Fabric API 0.145.1 instead of 26.1.2.
+- Retain the independent terrain renderer and shader settings; require Java 25.
+- Keep Minecraft 26.1.1 and 26.1.2 on separate branches and in separate artifacts.
+- Full shaderpack rendering and in-game visual acceptance remain unfinished.
+
 ### Minecraft 26.1.2 Terrain Rendering
 
 - Connect supported terrain-only shaderpacks to real chunk draw calls instead of requiring a fullscreen pass.
