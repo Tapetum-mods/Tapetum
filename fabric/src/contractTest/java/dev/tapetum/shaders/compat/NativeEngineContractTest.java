@@ -132,6 +132,11 @@ public final class NativeEngineContractTest {
         require(format.getVertexSize() == 32, "Legacy block stride is exactly 32 bytes");
         var sizes = format.getElements().stream().map(e -> e.getByteSize()).toList();
         require(sizes.equals(java.util.List.of(12, 4, 8, 4, 3, 1)), "Legacy block attribute offsets match native VAO");
+        var pipeline = resourceClass("dev/tapetum/shaders/pipeline/LegacyTerrainPipeline");
+        require(pipeline.methods.stream().filter(m -> m.name.equals("draw"))
+            .flatMap(m -> java.util.Arrays.stream(m.instructions.toArray()))
+            .anyMatch(i -> i instanceof org.objectweb.asm.tree.LdcInsnNode constant
+                && "tapetum_texture".equals(constant.cst)), "Terrain binds the atlas sampler renamed by the GLSL patcher");
     }
 
     private static void verifyRenderHooks(JarFile mod) throws IOException {

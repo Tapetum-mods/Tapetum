@@ -212,6 +212,18 @@ public final class GlRegressionTest {
     }
 
     private static void unsupportedTerrain() throws Exception {
+        String patched = dev.tapetum.shaders.shaderpack.glsl.GlslCompatPatcher.patch("""
+            #version 120
+            uniform sampler2D texture;
+            void main() { gl_FragColor = texture2D(texture, vec2(0.5)); }
+            """, dev.tapetum.shaders.shaderpack.glsl.GlslCompatPatcher.Stage.FRAGMENT, null);
+        try (GlProgram program = GlProgram.link("renamed atlas accepted", """
+                #version 330 core
+                in vec3 tapetum_Position;
+                void main() { gl_Position = vec4(tapetum_Position, 1.0); }
+                """, patched, LegacyTerrainMesh.ATTRIBUTES)) {
+            dev.tapetum.shaders.pipeline.LegacyTerrainPipeline.validateInputs(program);
+        }
         try (GlProgram program = GlProgram.link("missing terrain data", VERTEX, FRAGMENT)) {
             try {
                 dev.tapetum.shaders.pipeline.LegacyTerrainPipeline.validateInputs(program);

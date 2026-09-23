@@ -31,6 +31,7 @@ public final class LegacyTerrainPipeline implements RenderingPipeline {
         Map.entry("gbufferProjectionInverse", GL20.GL_FLOAT_MAT4),
         Map.entry("cameraPosition", GL20.GL_FLOAT_VEC3),
         Map.entry("texture", GL20.GL_SAMPLER_2D),
+        Map.entry("tapetum_texture", GL20.GL_SAMPLER_2D),
         Map.entry("gtexture", GL20.GL_SAMPLER_2D),
         Map.entry("lightmap", GL20.GL_SAMPLER_2D));
     private static final Map<String, Integer> ATTRIBUTES = Map.of(
@@ -111,6 +112,7 @@ public final class LegacyTerrainPipeline implements RenderingPipeline {
             int light = boundTexture(2);
             program.use();
             program.bindSampler("texture", 0, atlas);
+            program.bindSampler("tapetum_texture", 0, atlas);
             program.bindSampler("gtexture", 0, atlas);
             program.bindSampler("lightmap", 2, light);
             program.setUniform("tapetum_ModelViewMatrix", model);
