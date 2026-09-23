@@ -11,8 +11,10 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 
 /** Paint-only styling for explicitly registered widgets; vanilla retains input, narration and callbacks. */
 public final class TransparentWidgets {
-    public static final int PANEL = 0xB8101418;
-    public static final int ROW = 0xA6101418;
+    public static final int PANEL = 0x70101418;
+    public static final int ROW = 0x50101418;
+    public static final int SHEET = 0x50000000;
+    public static final int HOVER = 0x80303B3D;
     public static final int ACCENT = 0xFF9AE6D2;
     private record Style(OptionInstance<?> option, boolean selected, boolean toggle) { }
     private static final Map<AbstractWidget, Style> STYLES = new WeakHashMap<>();
@@ -42,7 +44,9 @@ public final class TransparentWidgets {
         var font = Minecraft.getInstance().font;
         int x = widget.getX(), y = widget.getY(), w = widget.getWidth(), h = widget.getHeight();
         int foreground = widget.active ? 0xFFFFFFFF : 0xFFAAAAAA;
-        graphics.fill(x, y, x + w, y + h, widget.isHoveredOrFocused() ? 0xD0313A3C : ROW);
+        graphics.fill(x, y, x + w, y + h, widget.isHoveredOrFocused() ? HOVER : ROW);
+        if (style.option() == null && !style.toggle() && !style.selected())
+            graphics.outline(x, y, w, h, widget.active ? 0x809FA8AD : 0x405F686D);
         if (style.selected()) graphics.fill(x, y, x + 2, y + h, ACCENT);
         if (widget.isFocused()) graphics.outline(x, y, w, h, ACCENT);
 

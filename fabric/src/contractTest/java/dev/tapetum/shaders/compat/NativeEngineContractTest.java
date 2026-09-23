@@ -95,6 +95,23 @@ public final class NativeEngineContractTest {
             .noneMatch(i -> i instanceof MethodInsnNode call && call.owner.equals("net/minecraft/client/OptionInstance")
                 && call.name.equals("set")), "Skin paints values without mutating native options");
         var options = resourceClass("dev/tapetum/shaders/gui/ShaderPackOptionsScreen");
+        require(options.fields.stream().anyMatch(field -> field.name.equals("menu")
+            && field.desc.equals("Ldev/tapetum/shaders/shaderpack/ShaderPackMenu;")),
+            "Pack settings retain author-defined menus after the archive closes");
+        require(options.methods.stream().flatMap(m -> java.util.Arrays.stream(m.instructions.toArray()))
+            .anyMatch(i -> i instanceof MethodInsnNode call && call.owner.equals("dev/tapetum/shaders/shaderpack/ShaderPackMenu")
+                && call.name.equals("profile")), "Profile controls use real validated pack values");
+        var packs = resourceClass("dev/tapetum/shaders/gui/ShaderPackListWidget");
+        require(packs.methods.stream().filter(m -> m.name.equals("setSelected"))
+            .flatMap(m -> java.util.Arrays.stream(m.instructions.toArray()))
+            .anyMatch(i -> i instanceof MethodInsnNode call && call.owner.equals("java/lang/Runnable") && call.name.equals("run")),
+            "Keyboard and mouse selection both update the settings action");
+        for (var field : renderer.fields) {
+            if (Set.of("PANEL", "ROW", "SHEET", "HOVER").contains(field.name)) {
+                int alpha = ((Integer) field.value) >>> 24;
+                require(alpha >= 0x50 && alpha <= 0x80, "Reference menu opacity is bounded: " + field.name);
+            }
+        }
         require(options.methods.stream().filter(m -> m.name.equals("apply"))
             .flatMap(m -> java.util.Arrays.stream(m.instructions.toArray()))
             .anyMatch(i -> i instanceof MethodInsnNode call && call.name.equals("reload")),
