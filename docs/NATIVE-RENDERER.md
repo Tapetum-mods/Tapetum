@@ -21,6 +21,14 @@ Their four unit tests and two GPU scenarios are retired, not counted as passing 
 
 ## Required for Faithful World Rendering
 
+The 1.16.5 branch now has the first actual terrain draw replacement, restricted to terrain-only,
+single-color packs whose active inputs are fully implemented. The per-layer wrapper releases
+ownership on exceptional exits, and unsupported attributes/uniforms fail during activation.
+See `testpacks/native-terrain/` for the private acceptance fixture. It does not exercise the
+complex packs' geometry, MRT, shadow or temporal paths. Its world appearance is not yet verified.
+
+The 26.x branches do not yet have this draw hook: their block layouts and renderer APIs differ.
+
 1. Connect actual terrain draw calls to Tapetum geometry programs. Supply positions, lightmap UVs,
    normals, material IDs, mid-UVs and tangents from the real mesh, with tested vertex layouts.
 2. Allocate distinct G-buffer attachments and obey format, clear, blending and depth ownership rules.

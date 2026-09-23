@@ -6,6 +6,7 @@ build/
 
 # Fabric/Loom run environment
 run/
+fabric/logs/
 
 # IDE
 .idea/

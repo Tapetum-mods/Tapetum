@@ -63,6 +63,8 @@ public final class GlRegressionTest {
                 run("invalid MRT rejected", GlRegressionTest::invalidOutputs, failures);
                 run("float viewport uniforms", GlRegressionTest::viewportUniforms, failures);
                 run("failed pipeline falls back once", GlRegressionTest::pipelineFailure, failures);
+                run("native legacy terrain attributes and state", GlRegressionTest::nativeTerrain, failures);
+                run("unsupported terrain inputs rejected", GlRegressionTest::unsupportedTerrain, failures);
             } finally {
                 if (window != 0) GLFW.glfwDestroyWindow(window);
                 GLFW.glfwTerminate();
@@ -139,6 +141,85 @@ public final class GlRegressionTest {
 
     private static void equal(int expected, int actual, String label) {
         if (expected != actual) throw new AssertionError(label + ": expected " + expected + ", got " + actual);
+    }
+
+    private static void nativeTerrain() throws Exception {
+        int vbo = org.lwjgl.opengl.GL15.glGenBuffers();
+        int sentinelVao = GL30.glGenVertexArrays();
+        int sentinelBuffer = org.lwjgl.opengl.GL15.glGenBuffers();
+        try (GlRenderState state = GlRenderState.capture(); RenderTargets targets = new RenderTargets();
+                LegacyTerrainMesh mesh = new LegacyTerrainMesh();
+                GlProgram program = GlProgram.link("terrain mesh", """
+                    #version 330 core
+                    in vec3 tapetum_Position;
+                    in vec4 tapetum_Color;
+                    in vec2 tapetum_UV0;
+                    in vec2 tapetum_UV1;
+                    in vec3 tapetum_Normal;
+                    out vec4 sampleColor;
+                    void main() {
+                        gl_Position = vec4(tapetum_Position, 1.0);
+                        sampleColor = vec4(tapetum_Color.r, tapetum_UV0.x,
+                            tapetum_UV1.y / 240.0, tapetum_Normal.z);
+                    }
+                    """, """
+                    #version 330 core
+                    in vec4 sampleColor;
+                    out vec4 color;
+                    void main() { color = sampleColor; }
+                    """, LegacyTerrainMesh.ATTRIBUTES)) {
+            dev.tapetum.shaders.pipeline.LegacyTerrainPipeline.validateInputs(program);
+            state.prepareForFullscreen();
+            targets.resize(8, 8);
+            var data = org.lwjgl.system.MemoryUtil.memAlloc(4 * 32).order(java.nio.ByteOrder.nativeOrder());
+            try {
+                for (float[] pos : new float[][] {{-1,-1}, {1,-1}, {1,1}, {-1,1}}) {
+                    data.putFloat(pos[0]).putFloat(pos[1]).putFloat(0);
+                    data.put((byte)64).put((byte)128).put((byte)255).put((byte)255);
+                    data.putFloat(0.5f).putFloat(0.25f);
+                    data.putShort((short)32).putShort((short)240);
+                    data.put((byte)0).put((byte)0).put((byte)127).put((byte)0);
+                }
+                data.flip();
+                GlStateManager._glBindBuffer(org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER, vbo);
+                org.lwjgl.opengl.GL15.glBufferData(org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER, data,
+                    org.lwjgl.opengl.GL15.GL_STATIC_DRAW);
+            } finally {
+                org.lwjgl.system.MemoryUtil.memFree(data);
+            }
+            GL30.glBindVertexArray(sentinelVao);
+            GlStateManager._glBindBuffer(org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER, sentinelBuffer);
+            for (int iteration = 0; iteration < 2; iteration++) {
+                try (FramebufferBindings scope = targets.bindForWriting(List.of(0))) {
+                    program.use();
+                    mesh.draw(vbo, 4);
+                }
+                equal(sentinelVao, GL11.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING), "terrain restores VAO");
+                equal(sentinelBuffer, GL11.glGetInteger(org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER_BINDING), "terrain restores VBO");
+                targets.flip(0);
+                int[] rgba = targets.samplePixel(targets.readTexture(0), 4, 4);
+                pixel(rgba, 64, 128, 255);
+                equal(255, rgba[3], "signed normalized terrain normal");
+            }
+        } finally {
+            GL30.glBindVertexArray(0);
+            GlStateManager._glBindBuffer(org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER, 0);
+            org.lwjgl.opengl.GL15.glDeleteBuffers(vbo);
+            org.lwjgl.opengl.GL15.glDeleteBuffers(sentinelBuffer);
+            GL30.glDeleteVertexArrays(sentinelVao);
+            GlProgram.unbind();
+        }
+    }
+
+    private static void unsupportedTerrain() throws Exception {
+        try (GlProgram program = GlProgram.link("missing terrain data", VERTEX, FRAGMENT)) {
+            try {
+                dev.tapetum.shaders.pipeline.LegacyTerrainPipeline.validateInputs(program);
+                throw new AssertionError("Unsupported scene sampler was accepted");
+            } catch (java.io.IOException expected) {
+                if (!expected.getMessage().contains("scene")) throw expected;
+            }
+        }
     }
 
     private static void pixels() throws Exception {

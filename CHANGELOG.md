@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Native Terrain Milestone
+
+- Added a scoped 1.16.5 terrain-only pipeline that retains pack programs and replaces actual
+  block VBO draws, using the game's atlas, lightmap, per-chunk matrices and 32-byte vertex layout.
+- Preserve vanilla depth/blending and restore program, texture, VAO and buffer state. Terrain
+  ownership is released in a finally block; unsupported inputs are rejected instead of invented.
+- Added the missing cutout fallback role, bounded quad-to-triangle indices, typed driver input
+  reflection and idempotent program cleanup. Added a private native-terrain fixture and GPU tests.
+- This first native path supports only simple, single-color, terrain-only packs. Existing complex
+  packs still use experimental post-processing; G-buffers, shadows and full pack fidelity remain
+  unfinished. GPU tests are compiled, not executed automatically; no in-game validation is claimed.
+
 ### Minecraft 1.16.5 experimental port
 
 - Added a dedicated legacy branch with its own common/ and fabric/ sources.

@@ -6,7 +6,7 @@ Git branch using `common/` and `fabric/`; older multi-version builds are histori
 
 | Version | Current state | Remaining work |
 |---|---|---|
-| 1.16.5 | Experimental remapped JAR builds; Java 21 | In-game startup, modern menu backport and faithful world rendering |
+| 1.16.5 | Experimental remapped JAR, Java 21; first terrain-only draw path implemented | In-game validation, GUI backport, complex-pack geometry/G-buffers and shadows |
 | 1.17.x through 1.20.x | Not ported | Version-family adapters and separate tested artifacts |
 | 1.21.x before 1.21.11 | Not ported | Version-family adapters and separate tested artifacts |
 | 1.21.11 | Historical prototype only | Resolve Loom/remapping setup and develop a standalone port |

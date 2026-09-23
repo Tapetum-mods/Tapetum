@@ -48,7 +48,7 @@ public final class NativeEngineContractTest {
             JsonObject mixins = json(mod, "tapetumshaders.mixins.json");
             Set<String> registered = new HashSet<>();
             mixins.getAsJsonArray("client").forEach(value -> registered.add(value.getAsString()));
-            require(registered.equals(Set.of("MixinLevelRenderer", "MixinVideoSettingsScreen")),
+            require(registered.equals(Set.of("MixinLevelRenderer", "MixinVideoSettingsScreen", "MixinTerrainVertexBuffer")),
                 "Native rendering and vanilla settings hooks registered");
             for (String name : registered) {
                 require(mod.getJarEntry("dev/tapetum/shaders/mixin/" + name + ".class") != null, "Packaged mixin " + name);
@@ -66,6 +66,7 @@ public final class NativeEngineContractTest {
                 .filter(i -> i instanceof MethodInsnNode call && call.name.equals("registerKeyBinding")).count();
             require(keys == 2, "Standalone O/K controls registered without another renderer");
             verifyRenderHooks(mod);
+            verifyTerrainHooks(mod);
             verifyGlBridge(mod);
         }
         try (var production = new JarFile(args[3])) {
@@ -75,7 +76,7 @@ public final class NativeEngineContractTest {
             require(metadata.get("version").getAsString().equals(args[2]), "Remapped artifact preserves its version");
             require(metadata.getAsJsonObject("depends").get("minecraft").getAsString().equals(args[1]),
                 "Remapped artifact preserves its exact Minecraft target");
-            for (String type : java.util.List.of("MixinLevelRenderer", "MixinVideoSettingsScreen")) {
+            for (String type : java.util.List.of("MixinLevelRenderer", "MixinVideoSettingsScreen", "MixinTerrainVertexBuffer")) {
                 var node = new ClassNode();
                 new ClassReader(read(production, "dev/tapetum/shaders/mixin/" + type + ".class")).accept(node, 0);
                 require(node.invisibleAnnotations.stream().filter(a -> a.desc.equals("Lorg/spongepowered/asm/mixin/Mixin;"))
@@ -85,7 +86,8 @@ public final class NativeEngineContractTest {
                 for (var method : node.methods) {
                     if (method.visibleAnnotations == null) continue;
                     for (var annotation : method.visibleAnnotations) {
-                        if (!annotation.desc.startsWith("Lorg/spongepowered/asm/mixin/injection/")) continue;
+                        if (!annotation.desc.startsWith("Lorg/spongepowered/asm/mixin/injection/")
+                                && !annotation.desc.equals("Lcom/llamalad7/mixinextras/injector/wrapmethod/WrapMethod;")) continue;
                         int key = annotation.values.indexOf("method");
                         if (key >= 0) require(((java.util.List<?>) annotation.values.get(key + 1)).stream()
                             .allMatch(target -> target.toString().startsWith("method_")), "Production injection selector remapped");
@@ -101,6 +103,35 @@ public final class NativeEngineContractTest {
             "Legacy scale conversion retains axis order");
         FrameStateContractTest.run();
         System.out.println("Native Tapetum engine contract: " + checks + " checks passed (headless)");
+    }
+
+    private static void verifyTerrainHooks(JarFile mod) throws IOException {
+        var vertex = resourceClass("com/mojang/blaze3d/vertex/VertexBuffer");
+        var mixin = new ClassNode();
+        new ClassReader(read(mod, "dev/tapetum/shaders/mixin/MixinTerrainVertexBuffer.class")).accept(mixin, 0);
+        for (var field : mixin.fields) {
+            require(vertex.fields.stream().anyMatch(f -> f.name.equals(field.name) && f.desc.equals(field.desc)),
+                "Terrain shadow field exists: " + field.name);
+        }
+        require(vertex.methods.stream().anyMatch(m -> m.name.equals("draw") && m.desc.equals("(Lcom/mojang/math/Matrix4f;I)V")),
+            "Exact legacy terrain draw target exists");
+        var draw = mixin.methods.stream().filter(m -> m.name.equals("tapetum$drawTerrain")).findFirst().orElseThrow();
+        require(draw.desc.equals("(Lcom/mojang/math/Matrix4f;ILorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V"),
+            "Terrain hook arguments match game draw method");
+        require(draw.visibleAnnotations.stream().anyMatch(a -> a.values != null && a.values.contains("cancellable")
+            && Boolean.TRUE.equals(a.values.get(a.values.indexOf("cancellable") + 1))), "Native draw can replace the vanilla draw");
+        var renderer = resourceClass("net/minecraft/client/renderer/LevelRenderer");
+        require(renderer.methods.stream().anyMatch(m -> m.name.equals("renderChunkLayer")
+            && m.desc.equals("(Lnet/minecraft/client/renderer/RenderType;Lcom/mojang/blaze3d/vertex/PoseStack;DDD)V")),
+            "Exact chunk-layer wrapper target exists");
+        var layers = new ClassNode();
+        new ClassReader(read(mod, "dev/tapetum/shaders/mixin/MixinLevelRenderer.class")).accept(layers, 0);
+        var wrapper = layers.methods.stream().filter(m -> m.name.equals("tapetum$terrainLayer")).findFirst().orElseThrow();
+        require(wrapper.tryCatchBlocks.stream().anyMatch(block -> block.type == null), "Layer ownership exits through finally");
+        var format = com.mojang.blaze3d.vertex.DefaultVertexFormat.BLOCK;
+        require(format.getVertexSize() == 32, "Legacy block stride is exactly 32 bytes");
+        var sizes = format.getElements().stream().map(e -> e.getByteSize()).toList();
+        require(sizes.equals(java.util.List.of(12, 4, 8, 4, 3, 1)), "Legacy block attribute offsets match native VAO");
     }
 
     private static void verifyRenderHooks(JarFile mod) throws IOException {

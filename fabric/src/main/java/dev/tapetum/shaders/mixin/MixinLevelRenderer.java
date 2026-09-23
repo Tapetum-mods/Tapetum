@@ -17,10 +17,30 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import dev.tapetum.shaders.pipeline.LegacyTerrainPipeline;
+import net.minecraft.client.renderer.RenderType;
 
 /** Brackets the 1.16.5 world draw. Geometry and shadow passes remain separate development work. */
 @Mixin(LevelRenderer.class)
 public abstract class MixinLevelRenderer {
+    @WrapMethod(method = "renderChunkLayer")
+    private void tapetum$terrainLayer(RenderType type, PoseStack pose, double x, double y, double z,
+            Operation<Void> original) {
+        var pipeline = TapetumShaders.getPipelineManager().getPipeline();
+        if (!(pipeline instanceof LegacyTerrainPipeline terrain)) {
+            original.call(type, pose, x, y, z);
+            return;
+        }
+        terrain.enterLayer(type);
+        try {
+            original.call(type, pose, x, y, z);
+        } finally {
+            terrain.leaveLayer();
+        }
+    }
+
     @Inject(method = "renderLevel", at = @At("HEAD"))
     private void tapetum$beginLevelRender(PoseStack pose, float partialTick, long finishTimeNano,
             boolean renderOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture,

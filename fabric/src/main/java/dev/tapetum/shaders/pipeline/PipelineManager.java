@@ -57,6 +57,24 @@ public class PipelineManager implements ShaderEngine {
 		return current;
 	}
 
+	public boolean drawTerrain(int vbo, int vertices, com.mojang.blaze3d.vertex.VertexFormat format,
+			com.mojang.math.Matrix4f modelView, int mode) {
+		if (!(current instanceof LegacyTerrainPipeline terrain)) return false;
+		try {
+			return terrain.draw(vbo, vertices, format, modelView, mode);
+		} catch (RuntimeException error) {
+			lastFailure = error;
+			current = VanillaRenderingPipeline.INSTANCE;
+			LOGGER.error("Native terrain failed; restoring vanilla drawing until reload", error);
+			try {
+				terrain.destroy();
+			} catch (RuntimeException cleanup) {
+				error.addSuppressed(cleanup);
+			}
+			return false;
+		}
+	}
+
 	@Override
 	public void beginLevelRendering() {
 		// A new world instance also invalidates history when its dimension key is unchanged.
@@ -226,15 +244,20 @@ public class PipelineManager implements ShaderEngine {
 		ShaderDimension dimension = ShaderDimension.fromDimensionId(renderingLevel == null ? null
 			: renderingLevel.dimension().location().toString());
 		List<ShaderProgramChain.Pass> chain = ShaderProgramChain.discover(pack, dimension);
+		ShaderMacros macros = buildMacros();
 
 		if (chain.isEmpty()) {
-			LOGGER.info("'{}' selected ({} properties parsed) but ships no screen-space programs in '{}/' or at "
-				+ "the shaders root - vanilla rendering will be used", pack.getName(),
-				pack.getProperties().size(), dimension.folderName());
-			return VanillaRenderingPipeline.INSTANCE;
+			try {
+				var terrain = LegacyTerrainPipeline.load(pack, macros, dimension);
+				LOGGER.info("'{}': native terrain-only programs loaded; world appearance is not yet verified", pack.getName());
+				return terrain;
+			} catch (IOException | GlslIncludeException error) {
+				lastFailure = error;
+				LOGGER.error("'{}': native terrain-only path unavailable", pack.getName(), error);
+				return VanillaRenderingPipeline.INSTANCE;
+			}
 		}
 
-		ShaderMacros macros = buildMacros();
 		List<CompositeChainPipeline.PassSource> prepared = new ArrayList<>();
 		int bufferCount = 1;
 		// Gathered across every pass, because a pack declares its formats once in a shared include and
