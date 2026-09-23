@@ -62,6 +62,7 @@ public final class GlRegressionTest {
                 run("state restored after exception", GlRegressionTest::exceptionState, failures);
                 run("invalid MRT rejected", GlRegressionTest::invalidOutputs, failures);
                 run("float viewport uniforms", GlRegressionTest::viewportUniforms, failures);
+                run("native terrain pixels, depth, cutouts and section transforms", NativeTerrainGlTest::run, failures);
                 run("failed pipeline falls back once", GlRegressionTest::pipelineFailure, failures);
             } finally {
                 if (window != 0) GLFW.glfwDestroyWindow(window);

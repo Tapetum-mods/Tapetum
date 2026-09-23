@@ -5,6 +5,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL33;
+import org.lwjgl.opengl.GL31;
 import org.lwjgl.system.MemoryStack;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -118,6 +119,36 @@ public final class GlProgram implements AutoCloseable {
 
 	public void use() {
 		GlStateManager._glUseProgram(programId);
+	}
+
+	/** Reuse an already-bound game UBO, without changing any indexed buffer binding. */
+	public void inheritUniformBlock(int sourceProgram, String sourceName, String targetName) {
+		int target = GL31.glGetUniformBlockIndex(programId, targetName);
+		if (target == GL31.GL_INVALID_INDEX) return;
+		int source = GL31.glGetUniformBlockIndex(sourceProgram, sourceName);
+		if (source == GL31.GL_INVALID_INDEX) throw new IllegalStateException("Missing native block " + sourceName);
+		int size = GL31.glGetActiveUniformBlocki(sourceProgram, source, GL31.GL_UNIFORM_BLOCK_DATA_SIZE);
+		if (size < GL31.glGetActiveUniformBlocki(programId, target, GL31.GL_UNIFORM_BLOCK_DATA_SIZE)) {
+			throw new IllegalStateException("Native block is too small: " + sourceName);
+		}
+		GL31.glUniformBlockBinding(programId, target,
+			GL31.glGetActiveUniformBlocki(sourceProgram, source, GL31.GL_UNIFORM_BLOCK_BINDING));
+	}
+
+	/** Point at the game's existing texture/sampler pair, preserving its atlas filtering. */
+	public void inheritSampler(int sourceProgram, String sourceName, String targetName) {
+		int target = GL20.glGetUniformLocation(programId, targetName);
+		if (target < 0) return;
+		int source = GL20.glGetUniformLocation(sourceProgram, sourceName);
+		if (source < 0) throw new IllegalStateException("Missing native sampler " + sourceName);
+		GL20.glUniform1i(target, GL20.glGetUniformi(sourceProgram, source));
+	}
+
+	public String uniformBlock(String uniform) {
+		int index = GL31.glGetUniformIndices(programId, uniform);
+		if (index == GL31.GL_INVALID_INDEX) return "";
+		int block = GL31.glGetActiveUniformsi(programId, index, GL31.GL_UNIFORM_BLOCK_INDEX);
+		return block < 0 ? "" : GL31.glGetActiveUniformBlockName(programId, block);
 	}
 
 	/**

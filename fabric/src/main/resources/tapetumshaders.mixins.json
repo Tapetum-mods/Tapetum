@@ -5,6 +5,9 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "MixinLevelRenderer",
+    "MixinGlCommandEncoder",
+    "AccessorGlBuffer",
+    "AccessorGlRenderPass",
     "AccessorOptionsSubScreen",
     "MixinMinecraftScreen",
     "MixinTransparentButton",

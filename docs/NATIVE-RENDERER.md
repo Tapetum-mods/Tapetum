@@ -26,8 +26,13 @@ block atlas, lightmap, model-view/projection matrices and the verified 32-byte b
 It rejects unsupported active attributes/uniforms instead of supplying fake material data. A private
 fixture and GPU regression tests are included on that branch; GPU/world appearance is unverified.
 
-The 26.x branches share source preparation, cutout fallback, quad-index and input-reflection code,
-but do not yet contain a native terrain draw hook. Their block layouts and renderer APIs differ.
+The 26.1 branch now also has a version-specific terrain draw hook for Minecraft 26.1.2. It uses
+the native 28-byte block layout, existing index buffers, section/global UBO ranges and sampler
+bindings. Hidden OpenGL tests on Apple M1 verify terrain pixels, alpha discard, depth occlusion,
+large-coordinate transforms and 16/32-bit indices against Minecraft's own GLSL block declarations.
+This is restricted to terrain-only packs without unsupported active inputs or pack properties.
+It does not provide the normals/materials, MRT or shadow passes needed by Complementary.
+The 26.2 and 26.3 branches have not received this version-specific hook.
 
 1. Connect actual terrain draw calls to Tapetum geometry programs. Supply positions, lightmap UVs,
    normals, material IDs, mid-UVs and tangents from the real mesh, with tested vertex layouts.
@@ -49,5 +54,6 @@ determine compatibility: program features, authored settings and device capabili
 
 ## Verification Boundary
 
-The user prohibits desktop control and launching Minecraft/windows. Current verification is
-terminal-only. In-world visual acceptance must be performed by the user; do not report it as done.
+The user prohibits desktop control and launching Minecraft. On 2026-09-23 the user explicitly
+authorized the hidden-window OpenGL test for this change. No game or other application was controlled.
+In-world visual acceptance must be performed by the user; do not report it as done.

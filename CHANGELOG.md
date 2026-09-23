@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Minecraft 26.1.2 Terrain Rendering
+
+- Connect supported terrain-only shaderpacks to real chunk draw calls instead of requiring a fullscreen pass.
+- Reuse Minecraft's section/global uniform buffers, atlas samplers, native layer state and sorted index buffers.
+  Keep section/camera subtraction integer-valued before converting positions to floats.
+- Preserve the game's program, vertex array and buffer bindings after each custom draw, including failures.
+- Reject required normals, material IDs and other unavailable inputs instead of substituting fabricated values.
+- Add hidden-window OpenGL pixel checks for terrain colors, cutout discard, depth occlusion, section offsets,
+  large world coordinates, 16/32-bit indices and GPU state preservation; compare against Minecraft's own GLSL blocks.
+- Complex packs such as Complementary still use incomplete screen-space rendering. Extended terrain attributes,
+  native G-buffers, shadow maps, other world geometry and in-game visual acceptance remain unfinished.
+  Successful GPU fixture tests do not establish full shaderpack compatibility.
+
 ### Shader Pack Menus
 
 - Reduced menu opacity and unified the picker background and outlined controls around the supplied reference.
@@ -18,8 +31,8 @@
   typed GPU input reflection, matrix3 uniform uploads and idempotent program deletion.
 - Added headless preparation tests for simple terrain-only shaderpacks, rejecting incomplete
   programs and unsupported passes/target requirements before GPU allocation.
-- The separate 1.16.5 branch now connects simple terrain-only packs to actual block VBO draws.
-  This draw hook is not present in 26.x yet. Complex packs still use experimental post-processing;
+- The separate 1.16.5 branch connects simple terrain-only packs to actual block VBO draws.
+  A separate 26.1.2 hook is now implemented as described above. Complex packs still use experimental post-processing;
   full geometry/G-buffers, shadows and in-game visual acceptance remain unfinished.
 
 ### Fixed

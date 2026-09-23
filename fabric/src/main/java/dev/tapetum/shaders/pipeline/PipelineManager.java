@@ -50,11 +50,30 @@ public class PipelineManager implements ShaderEngine {
 
 	@Override
 	public String name() {
-		return "native Tapetum screen-space engine";
+		return "native Tapetum engine";
 	}
 
 	public RenderingPipeline getPipeline() {
 		return current;
+	}
+
+	public boolean drawTerrain(dev.tapetum.shaders.mixin.AccessorGlRenderPass pass,
+			com.mojang.blaze3d.pipeline.RenderPipeline pipeline, int baseVertex, int firstIndex, int count,
+			com.mojang.blaze3d.vertex.VertexFormat.IndexType indexType, int instances) {
+		if (!(current instanceof NativeTerrainPipeline terrain)) return false;
+		try {
+			return terrain.draw(pass, pipeline, baseVertex, firstIndex, count, indexType, instances);
+		} catch (RuntimeException error) {
+			lastFailure = error;
+			current = VanillaRenderingPipeline.INSTANCE;
+			try {
+				terrain.destroy();
+			} catch (RuntimeException cleanup) {
+				error.addSuppressed(cleanup);
+			}
+			LOGGER.error("Native terrain rendering failed; returning to vanilla until reload", error);
+			return false;
+		}
 	}
 
 	@Override
@@ -240,15 +259,20 @@ public class PipelineManager implements ShaderEngine {
 		ShaderDimension dimension = ShaderDimension.fromDimensionId(renderingLevel == null ? null
 			: renderingLevel.dimension().identifier().toString());
 		List<ShaderProgramChain.Pass> chain = ShaderProgramChain.discover(pack, dimension);
+		ShaderMacros macros = buildMacros();
 
 		if (chain.isEmpty()) {
-			LOGGER.info("'{}' selected ({} properties parsed) but ships no screen-space programs in '{}/' or at "
-				+ "the shaders root - vanilla rendering will be used", pack.getName(),
-				pack.getProperties().size(), dimension.folderName());
-			return VanillaRenderingPipeline.INSTANCE;
+			try {
+				var terrain = NativeTerrainPipeline.load(pack, macros, dimension);
+				LOGGER.info("'{}': native terrain programs connected to chunk geometry", pack.getName());
+				return terrain;
+			} catch (IOException | GlslIncludeException error) {
+				lastFailure = error;
+				LOGGER.error("Cannot render terrain pack '{}'", pack.getName(), error);
+				return VanillaRenderingPipeline.INSTANCE;
+			}
 		}
 
-		ShaderMacros macros = buildMacros();
 		List<CompositeChainPipeline.PassSource> prepared = new ArrayList<>();
 		int bufferCount = 1;
 		// Gathered across every pass, because a pack declares its formats once in a shared include and
@@ -308,6 +332,8 @@ public class PipelineManager implements ShaderEngine {
 			LOGGER.info("'{}': compiled {} of {} chain passes ({}) - {} colortex buffers",
 				pack.getName(), prepared.size(), chain.size(),
 				prepared.stream().map(CompositeChainPipeline.PassSource::name).toList(), bufferCount);
+			LOGGER.warn("'{}': post-processing only; native geometry/materials and shadow rendering for this pack "
+				+ "are not implemented. This is NOT the pack's complete visual rendering.", pack.getName());
 			return pipeline;
 		} catch (GlShaderCompileException e) {
 			lastFailure = e;

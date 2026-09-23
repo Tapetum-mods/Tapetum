@@ -48,7 +48,8 @@ public final class NativeEngineContractTest {
             Set<String> registered = new HashSet<>();
             mixins.getAsJsonArray("client").forEach(value -> registered.add(value.getAsString()));
             require(registered.equals(Set.of("MixinLevelRenderer", "AccessorOptionsSubScreen", "MixinMinecraftScreen",
-                "MixinTransparentButton", "MixinTransparentSlider")), "Native rendering and scoped transparent UI hooks registered");
+                "MixinTransparentButton", "MixinTransparentSlider", "MixinGlCommandEncoder", "AccessorGlBuffer",
+                "AccessorGlRenderPass")), "Native rendering and scoped transparent UI hooks registered");
             for (String name : registered) {
                 require(mod.getJarEntry("dev/tapetum/shaders/mixin/" + name + ".class") != null, "Packaged mixin " + name);
             }
@@ -59,10 +60,42 @@ public final class NativeEngineContractTest {
                 .filter(i -> i instanceof MethodInsnNode call && call.name.equals("registerKeyMapping")).count();
             require(keys == 2, "Standalone O/K controls registered without another renderer");
             verifyRenderHooks(mod);
+            verifyTerrainHooks();
             verifyGlBridge(mod);
         }
         FrameStateContractTest.run();
         System.out.println("Native Tapetum engine contract: " + checks + " checks passed (headless)");
+    }
+
+    private static void verifyTerrainHooks() throws IOException {
+        String descriptor = "(Lcom/mojang/blaze3d/opengl/GlRenderPass;IIILcom/mojang/blaze3d/vertex/VertexFormat$IndexType;"
+            + "Lcom/mojang/blaze3d/opengl/GlRenderPipeline;I)V";
+        var encoder = resourceClass("com/mojang/blaze3d/opengl/GlCommandEncoder");
+        require(encoder.methods.stream().anyMatch(m -> m.name.equals("drawFromBuffers") && m.desc.equals(descriptor)),
+            "Exact native draw hook target exists");
+        var hook = resourceClass("dev/tapetum/shaders/mixin/MixinGlCommandEncoder").methods.stream()
+            .filter(m -> m.name.equals("tapetum$drawTerrain")).findFirst().orElseThrow();
+        require(hook.desc.equals(descriptor.substring(0, descriptor.length() - 2)
+            .replace("Lcom/mojang/blaze3d/opengl/GlRenderPass;", "Ljava/lang/Object;")
+            + "Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V"), "Hook parameters match with explicit pass coercion");
+        var draws = encoder.methods.stream().filter(m -> m.name.equals("executeDrawMultiple")).findFirst().orElseThrow();
+        var instructions = java.util.Arrays.asList(draws.instructions.toArray());
+        int upload = -1;
+        int draw = -1;
+        for (int i = 0; i < instructions.size(); i++) {
+            if (instructions.get(i) instanceof MethodInsnNode call) {
+                if (call.owner.equals("java/util/function/BiConsumer") && call.name.equals("accept")) upload = i;
+                if (call.name.equals("drawFromBuffers")) draw = i;
+            }
+        }
+        require(upload >= 0 && draw > upload, "Section uniforms are uploaded before the intercepted draw");
+        var pass = resourceClass("com/mojang/blaze3d/opengl/GlRenderPass");
+        require(pass.fields.stream().anyMatch(f -> f.name.equals("vertexBuffers")
+            && f.desc.equals("[Lcom/mojang/blaze3d/buffers/GpuBuffer;")), "Native vertex buffer accessor target");
+        require(pass.fields.stream().anyMatch(f -> f.name.equals("indexBuffer")
+            && f.desc.equals("Lcom/mojang/blaze3d/buffers/GpuBuffer;")), "Native index buffer accessor target");
+        require(resourceClass("com/mojang/blaze3d/opengl/GlBuffer").fields.stream()
+            .anyMatch(f -> f.name.equals("handle") && f.desc.equals("I")), "Native GL handle accessor target");
     }
 
     private static void verifyGuiHooks(JarFile mod, JsonObject metadata) throws IOException {

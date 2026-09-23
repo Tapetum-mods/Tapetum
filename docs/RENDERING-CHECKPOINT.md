@@ -1,6 +1,33 @@
-# Rendering checkpoint: 2026-09-21
+# Rendering checkpoint: 2026-09-23
 
-## 26.3 and IDE Import Update (Current)
+## 26.1.2 Native Terrain Draws (Current)
+
+The installed 26.1.2 log still showed Complementary's nine screen-space passes over vanilla data.
+That path cannot reproduce the authored world rendering. It now logs this limitation explicitly.
+
+Added a native draw hook after Minecraft binds its per-section UBO and layer state. Terrain-only
+packs can use their actual vertex/fragment programs on the game's 28-byte block VBO and original
+index buffers. Section transforms reuse the game's UBO ranges rather than reading buffers back to
+the CPU. Samplers retain native filtering. Active inputs without genuine data are rejected.
+
+Verification, with explicit authorization for the hidden OpenGL test:
+
+```sh
+./gradlew build :fabric:glRegressionTest -Pbuild.release=true --offline --console=plain
+```
+
+- 260 common unit tests, 260 native engine contract checks, 13 frame-state checks and 8 version-policy checks.
+- Ten GPU regression scenarios passed on Apple M1 / OpenGL 4.1 Metal - 91.7.
+- The new terrain scenario checks colors, cutout discard, depth occlusion, section UBO offsets,
+  large world coordinates, 16/32-bit indices and buffer-state preservation. It loads the native
+  GLSL block declarations from the actual Minecraft JAR.
+- The fallback scenario intentionally logs one synthetic exception; the test verifies recovery.
+- No Minecraft client, live mixin transformation or authored-pack world comparison was run.
+- Complementary is NOT fixed by this terrain-only milestone. Native extended attributes, MRT,
+  shadow rendering and the remaining world passes are still required. No all-pack claim is made.
+- This change targets 26.1.2 only; other version branches and installed Modrinth files are unchanged.
+
+## 26.3 and IDE Import Update (2026-09-21)
 
 Added an experimental 26.3 OpenGL build with Loom 1.17.20 and Fabric API 0.161.0+26.3.
 RenderPearl's relocated device/texture/state types and the changed LevelRenderer descriptor are
