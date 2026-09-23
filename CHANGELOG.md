@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Minecraft 1.20.3 Port
+
+- Target Minecraft 1.20.3 with Fabric API 0.91.1 and Java 21.
+- Adapt list dimensions to the updated native widget constructor.
+- In-game acceptance and complete shaderpack rendering remain pending.
+
 ### Minecraft 1.20.2 Port
 
 - Target Minecraft 1.20.2 with Fabric API 0.91.6 and Java 21.

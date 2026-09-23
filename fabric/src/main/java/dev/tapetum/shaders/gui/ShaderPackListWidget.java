@@ -29,7 +29,7 @@ public class ShaderPackListWidget extends ObjectSelectionList<ShaderPackListWidg
 	private static final int NORMAL_COLOR = 0xFFFFFFFF;
 
 	public ShaderPackListWidget(Minecraft minecraft, int width, int height, int y, int itemHeight) {
-		super(minecraft, width, height + y, y, y + height, itemHeight);
+		super(minecraft, width, height, y, itemHeight);
 		setRenderBackground(false);
 	}
 
