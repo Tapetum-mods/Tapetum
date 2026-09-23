@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Minecraft 1.20.4 Port
+
+- Target Minecraft 1.20.4 with Fabric API 0.97.3 and Java 21.
+- Keep exact-version terrain, menu, matrix-history and production-remapping checks.
+- In-game acceptance and complete shaderpack rendering remain pending.
+
 ### Minecraft 1.20.3 Port
 
 - Target Minecraft 1.20.3 with Fabric API 0.91.1 and Java 21.
