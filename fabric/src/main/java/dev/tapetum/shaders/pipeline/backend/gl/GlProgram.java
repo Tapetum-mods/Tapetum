@@ -41,6 +41,7 @@ public final class GlProgram implements AutoCloseable {
 	public static final int MAX_TEXTURE_UNITS = VANILLA_CACHED_UNITS;
 
 	private final int programId;
+	private boolean closed;
 
 	/**
 	 * Every uniform name this loader tried to set, and the subset the linked program actually had.
@@ -253,6 +254,38 @@ public final class GlProgram implements AutoCloseable {
 		}
 	}
 
+	public void setUniform(String uniformName, org.joml.Matrix3fc value) {
+		int location = GlStateManager._glGetUniformLocation(programId, uniformName);
+		if (location < 0) return;
+		try (MemoryStack stack = MemoryStack.stackPush()) {
+			FloatBuffer buffer = stack.mallocFloat(9);
+			value.get(buffer);
+			GL20.glUniformMatrix3fv(location, false, buffer);
+		}
+	}
+
+	public record ActiveInput(String name, int type, int size) { }
+
+	public int attributeLocation(String name) {
+		return GL20.glGetAttribLocation(programId, name);
+	}
+
+	/** Driver reflection, so inactive preprocessor branches do not count as required inputs. */
+	public List<ActiveInput> activeInputs(boolean attributes) {
+		int count = GL20.glGetProgrami(programId, attributes ? GL20.GL_ACTIVE_ATTRIBUTES : GL20.GL_ACTIVE_UNIFORMS);
+		List<ActiveInput> inputs = new ArrayList<>();
+		try (MemoryStack stack = MemoryStack.stackPush()) {
+			IntBuffer size = stack.mallocInt(1);
+			IntBuffer type = stack.mallocInt(1);
+			for (int i = 0; i < count; i++) {
+				String name = attributes ? GL20.glGetActiveAttrib(programId, i, size, type)
+					: GL20.glGetActiveUniform(programId, i, size, type);
+				inputs.add(new ActiveInput(name, type.get(0), size.get(0)));
+			}
+		}
+		return List.copyOf(inputs);
+	}
+
 	private void record(String uniformName, boolean accepted) {
 		if (!auditing) {
 			return;
@@ -320,6 +353,9 @@ public final class GlProgram implements AutoCloseable {
 
 	@Override
 	public void close() {
-		GlStateManager.glDeleteProgram(programId);
+		if (!closed) {
+			closed = true;
+			GlStateManager.glDeleteProgram(programId);
+		}
 	}
 }

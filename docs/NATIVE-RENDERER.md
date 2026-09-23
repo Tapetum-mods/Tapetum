@@ -21,6 +21,14 @@ They remain recoverable from Git history, but are neither shipped nor counted as
 
 ## Required for Faithful World Rendering
 
+The 1.16.5 branch now has a first draw replacement for simple terrain-only packs, with the native
+block atlas, lightmap, model-view/projection matrices and the verified 32-byte block vertex layout.
+It rejects unsupported active attributes/uniforms instead of supplying fake material data. A private
+fixture and GPU regression tests are included on that branch; GPU/world appearance is unverified.
+
+The 26.x branches share source preparation, cutout fallback, quad-index and input-reflection code,
+but do not yet contain a native terrain draw hook. Their block layouts and renderer APIs differ.
+
 1. Connect actual terrain draw calls to Tapetum geometry programs. Supply positions, lightmap UVs,
    normals, material IDs, mid-UVs and tangents from the real mesh, with tested vertex layouts.
 2. Allocate distinct G-buffer attachments and obey format, clear, blending and depth ownership rules.
