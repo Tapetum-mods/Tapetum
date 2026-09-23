@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Minecraft 1.19.1 Port
+
+- Target Minecraft 1.19.1 and Fabric API 0.58.5+1.19.1 with a separate remapped artifact.
+- Run the native rendering and archive contracts against this release. Java 21 is required;
+  this experimental port still needs in-game validation.
+
 ### Minecraft 1.19 Port
 
 - Adapt component factories and option-value accessors to the 1.19 APIs.
