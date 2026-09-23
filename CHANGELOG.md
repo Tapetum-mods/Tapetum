@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Minecraft 1.18.2 Port
+
+- Compile and remap against Minecraft 1.18.2 with Fabric API 0.77.0+1.18.2.
+- Resolve the new biome holder before registry lookup, preserving biome-dependent shader expressions.
+- Retain version-local render-hook checks. Java 21 is required; in-game rendering remains unverified.
+
 ### Minecraft 1.18.1 Port
 
 - Compile, remap and check the exact Minecraft 1.18.1 target using its own game archive.
