@@ -7,18 +7,64 @@ Git branch using `common/` and `fabric/`; older multi-version builds are histori
 | Version | Current state | Remaining work |
 |---|---|---|
 | 1.16.5 | Experimental remapped JAR, Java 21; first terrain-only draw path implemented | In-game validation, GUI backport, complex-pack geometry/G-buffers and shadows |
-| 1.17.x through 1.20.x | Not ported | Version-family adapters and separate tested artifacts |
-| 1.21.x before 1.21.11 | Not ported | Version-family adapters and separate tested artifacts |
+| 1.17 | Experimental remapped JAR, Java 21; headless checks pass | In-game validation, modern GUI and full rendering |
+| 1.17.1 | Experimental remapped JAR, Java 21; headless checks pass | In-game validation, modern GUI and full rendering |
+| 1.18 | Experimental remapped JAR, Java 21; headless checks pass | In-game validation, modern GUI and full rendering |
+| 1.18.1 | Experimental remapped JAR, Java 21; headless checks pass | In-game validation, modern GUI and full rendering |
+| 1.18.2 | Experimental remapped JAR, Java 21; biome-holder adapter and headless checks pass | In-game validation, modern GUI and full rendering |
+| 1.19 | Experimental remapped JAR, Java 21; headless checks pass | In-game validation, modern GUI and full rendering |
+| 1.19.1 | Experimental remapped JAR, Java 21; headless checks pass | In-game validation, modern GUI and full rendering |
+| 1.19.2 | Experimental remapped JAR, Java 21; headless checks pass | In-game validation, modern GUI and full rendering |
+| 1.19.3 | Experimental remapped JAR, Java 21; native JOML and menu adapters verified | In-game validation, modern GUI and full rendering |
+| 1.19.4 | Experimental remapped JAR, Java 21; headless checks pass | In-game validation, modern GUI and full rendering |
+| 1.20 | Experimental remapped JAR, Java 21; GuiGraphics adapter and headless checks pass | In-game validation, modern GUI and full rendering |
+| 1.20.1 | Experimental remapped JAR, Java 21; headless checks pass | In-game validation, modern GUI and full rendering |
+| 1.20.2 | Experimental remapped JAR, Java 21; renamed terrain hook and headless checks pass | In-game validation, modern GUI and full rendering |
+| 1.20.3 | Experimental remapped JAR, Java 21; native list dimensions and headless checks pass | In-game validation, modern GUI and full rendering |
+| 1.20.4 | Experimental remapped JAR, Java 21; headless checks pass | In-game validation, modern GUI and full rendering |
+| 1.20.5 | Not ported | Version-specific build and validation |
+| 1.20.6 | Not ported | Version-specific build and validation |
+| 1.21 | Not ported | Version-specific build and validation |
+| 1.21.1 | Not ported | Version-specific build and validation |
+| 1.21.2 | Not ported | Version-specific build and validation |
+| 1.21.3 | Not ported | Version-specific build and validation |
+| 1.21.4 | Not ported | Version-specific build and validation |
+| 1.21.5 | Not ported | Version-specific build and validation |
+| 1.21.6 | Not ported | Version-specific build and validation |
+| 1.21.7 | Not ported | Version-specific build and validation |
+| 1.21.8 | Not ported | Version-specific build and validation |
+| 1.21.9 | Not ported | Version-specific build and validation |
+| 1.21.10 | Not ported | Version-specific build and validation |
 | 1.21.11 | Historical prototype only | Resolve Loom/remapping setup and develop a standalone port |
-| 26.1 / 26.1.1 | No matching artifact | Port and test separately; the 26.1.2 JAR does not declare them compatible |
+| 26.1 | Separate experimental JAR, Java 25; 260 common tests and native contract checks pass | Complete world rendering and in-game validation |
+| 26.1.1 | Separate experimental JAR, Java 25; 260 common tests and native contract checks pass | Complete world rendering and in-game validation |
 | 26.1.2 | Built, headless checks pass | Complete world rendering and in-game validation |
 | 26.2 | Built, headless checks pass | Complete world rendering and in-game validation |
 | 26.3 | New experimental OpenGL build | Complete world rendering, Vulkan implementation and in-game validation |
 
 An artifact compiling is not proof that a shaderpack renders correctly. Do not broaden the
-Minecraft dependency range or rename a JAR to imply support for unported versions. The shared
-Minecraft code uses Java 25 APIs/language features; the common module currently targets Java 21.
+Minecraft dependency range or rename a JAR to imply support for unported versions. The 26.x
+Minecraft adapter targets Java 25; the common module and the new legacy ports target Java 21.
 A legacy port must address these baselines deliberately rather than promising a Java 8-compatible JAR.
+
+## Exact Target List
+
+`minecraft-versions.json` records all 35 requested releases individually, starting at **1.16.5**, not
+1.16.4. There is no universal artifact and a branch alone does not establish compatibility.
+
+Run `ruby tools/version-matrix.rb` (or add `--json`) to inspect local exact-version branches and
+collected JARs. The check rejects duplicate artifacts and mismatched Minecraft metadata. It reports
+archive integrity separately from compilation, launch and shader appearance; none implies the others.
+The `26.1.2` branch preserves the previously verified 26.1.2 code under its exact release name.
+
+The new 1.17-1.20.4 ports each pass 243 common tests, the exact-version API/remapping contract and
+13 matrix/history checks. GPU test sources compile, but these ports have not been launched in-game.
+
+The 26.1 and 26.1.1 builds each pass 260 common tests, 260 native contract checks and 13 matrix/history
+checks. The previous 26.1.2 hidden-window GPU results do not count as GPU validation of these new targets.
+
+As of this update, 21 of the 35 requested releases have an experimental artifact. The 14 releases
+from 1.20.5 through 1.21.11 still require separate ports; they are not covered by the other JARs.
 
 ## 26.3 adaptation
 
