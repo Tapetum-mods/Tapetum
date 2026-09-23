@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: ['26.*', future, 'feature/**', 'fix/**', 'hotfix/**', 'refactor/**']
+    branches: ['1.*', '26.*', future, 'feature/**', 'fix/**', 'hotfix/**', 'refactor/**']
   pull_request:
   workflow_dispatch:
   workflow_call:
@@ -36,6 +36,8 @@ jobs:
         run: ruby tools/repair-java-gradle-init-test.rb
       - name: Artifact verifier regression tests
         run: ruby tools/verify-artifact-test.rb
+      - name: Exact version inventory regression tests
+        run: ruby tools/version-matrix-test.rb
       - name: Verify production artifact and release tag
         env:
           RELEASE_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || '' }}

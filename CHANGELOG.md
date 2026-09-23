@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### Exact-Version Fabric Ports
+
+- Add separate branches and remapped experimental artifacts for every requested release from
+  Minecraft 1.17 through 1.20.4, using Java 21 without Iris or Sodium dependencies.
+- Adapt indexed terrain draws, biome holders and registry keys, JOML matrices, button builders,
+  GuiGraphics rendering, selection-list dimensions and the renamed section-rendering hook.
+- Build Minecraft 26.1 and 26.1.1 separately with Java 25; preserve the 26.1.2 code on its exact-name branch.
+- Each new legacy target passes 243 common tests, version-specific native/remapping contracts and
+  13 frame-state checks. The new 26.1 and 26.1.1 builds pass 260 common tests and 260 native contracts each.
+- Track all 35 requested releases explicitly. Reject duplicate production archives and mismatched
+  artifact metadata, and distinguish archive integrity from in-game or visual acceptance.
+- 21 requested versions now have experimental artifacts. Minecraft 1.20.5 through 1.21.11 remains
+  unported. New ports have not been launched in-game; GPU test sources were compiled, not executed.
+- Full shaderpack rendering and the modern settings UI backport remain unfinished. These ports
+  do not establish universal shader compatibility or fix the incomplete rendering of complex packs.
+
 ### Minecraft 26.1.2 Terrain Rendering
 
 - Connect supported terrain-only shaderpacks to real chunk draw calls instead of requiring a fullscreen pass.
