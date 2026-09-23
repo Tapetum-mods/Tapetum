@@ -134,7 +134,19 @@ public class PipelineManager implements ShaderEngine {
 
 	@Override
 	public Optional<Screen> openPackOptions(Screen parent) {
-		return Optional.empty();
+		return TapetumShaders.getConfig().getShaderPackName().flatMap(name -> openPackOptions(parent, name));
+	}
+
+	public Optional<Screen> openPackOptions(Screen parent, String name) {
+		var loaded = TapetumShaders.getShaderpackManager().load(name);
+		if (loaded.isEmpty()) return Optional.empty();
+		try (var pack = loaded.get()) {
+			return Optional.of(new dev.tapetum.shaders.gui.ShaderPackOptionsScreen(parent, name, pack.getOptions()));
+		} catch (IOException error) {
+			LOGGER.error("Failed to read options for '{}'", name, error);
+			lastFailure = error;
+			return Optional.empty();
+		}
 	}
 
 	/** Native Tapetum pipeline. Geometry and shadow stages are added behind this boundary. */
@@ -165,8 +177,9 @@ public class PipelineManager implements ShaderEngine {
 
 			ShaderPack pack = loaded.get();
 			try {
+				pack.setOptionValues(TapetumShaders.getConfig().getPackOptions(packName));
 				current = buildPipeline(pack);
-			} catch (RuntimeException e) {
+			} catch (IOException | RuntimeException e) {
 				lastFailure = e;
 				// Distinguish this from a close() failure: attributing a pipeline-construction crash
 				// to "failed to close the handle" sends anyone reading the log the wrong way entirely.

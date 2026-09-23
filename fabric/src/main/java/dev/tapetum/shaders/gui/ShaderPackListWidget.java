@@ -39,7 +39,23 @@ public class ShaderPackListWidget extends ObjectSelectionList<ShaderPackListWidg
 
 	@Override
 	public int getRowWidth() {
-		return ROW_WIDTH;
+		return Math.min(ROW_WIDTH, Math.max(1, getWidth() - 24));
+	}
+
+	@Override
+	protected void extractListBackground(GuiGraphicsExtractor graphics) {
+		int left = (getWidth() - getRowWidth()) / 2 - 4;
+		graphics.fill(left, getY(), left + getRowWidth() + 8, getY() + getHeight(), TransparentWidgets.PANEL);
+	}
+
+	@Override
+	protected void extractListSeparators(GuiGraphicsExtractor graphics) { }
+
+	@Override
+	protected void extractSelection(GuiGraphicsExtractor graphics, PackEntry entry, int color) {
+		graphics.fill(entry.getX(), entry.getY(), entry.getX() + entry.getWidth(),
+			entry.getY() + entry.getHeight(), 0xA6303B3D);
+		graphics.outline(entry.getX(), entry.getY(), entry.getWidth(), entry.getHeight(), TransparentWidgets.ACCENT);
 	}
 
 	/**
@@ -102,7 +118,8 @@ public class ShaderPackListWidget extends ObjectSelectionList<ShaderPackListWidg
 				text = font.plainSubstrByWidth(text, Math.max(0, available - font.width("..."))) + "...";
 			}
 
-			guiGraphics.text(font, text, getContentX(), textY, applied ? APPLIED_COLOR : NORMAL_COLOR);
+			guiGraphics.text(font, text, getContentX() + (available - font.width(text)) / 2,
+				textY, applied ? APPLIED_COLOR : NORMAL_COLOR);
 		}
 
 		@Override

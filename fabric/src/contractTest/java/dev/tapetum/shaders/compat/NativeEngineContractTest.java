@@ -47,18 +47,12 @@ public final class NativeEngineContractTest {
             JsonObject mixins = json(mod, "tapetumshaders.mixins.json");
             Set<String> registered = new HashSet<>();
             mixins.getAsJsonArray("client").forEach(value -> registered.add(value.getAsString()));
-            require(registered.equals(Set.of("MixinLevelRenderer", "MixinVideoSettingsScreen")),
-                "Native rendering and vanilla settings hooks registered");
+            require(registered.equals(Set.of("MixinLevelRenderer", "AccessorOptionsSubScreen", "MixinMinecraftScreen",
+                "MixinTransparentButton", "MixinTransparentSlider")), "Native rendering and scoped transparent UI hooks registered");
             for (String name : registered) {
                 require(mod.getJarEntry("dev/tapetum/shaders/mixin/" + name + ".class") != null, "Packaged mixin " + name);
             }
-            ClassNode video = resourceClass("net/minecraft/client/gui/screens/options/VideoSettingsScreen");
-            long calls = video.methods.stream().filter(m -> m.name.equals("addOptions"))
-                .flatMap(m -> java.util.Arrays.stream(m.instructions.toArray()))
-                .filter(i -> i instanceof MethodInsnNode call && call.owner.equals("net/minecraft/client/gui/components/OptionsList")
-                    && call.name.equals("addSmall") && call.desc.equals("([Lnet/minecraft/client/OptionInstance;)V"))
-                .count();
-            require(calls == 3, "Video settings hook targets the third array, not all three sections");
+            verifyGuiHooks(mod, metadata);
             ClassNode initializer = new ClassNode();
             new ClassReader(read(mod, "dev/tapetum/shaders/TapetumShadersClient.class")).accept(initializer, 0);
             long keys = initializer.methods.stream().flatMap(m -> java.util.Arrays.stream(m.instructions.toArray()))
@@ -69,6 +63,46 @@ public final class NativeEngineContractTest {
         }
         FrameStateContractTest.run();
         System.out.println("Native Tapetum engine contract: " + checks + " checks passed (headless)");
+    }
+
+    private static void verifyGuiHooks(JarFile mod, JsonObject metadata) throws IOException {
+        String guiDescriptor = "(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IIF)V";
+        for (String owner : Set.of("AbstractButton", "AbstractSliderButton")) {
+            require(resourceClass("net/minecraft/client/gui/components/" + owner).methods.stream().anyMatch(m ->
+                m.name.equals("extractWidgetRenderState") && m.desc.equals(guiDescriptor)), "Exact widget paint target: " + owner);
+        }
+        require(resourceClass("net/minecraft/client/Minecraft").methods.stream().anyMatch(m -> m.name.equals("setScreen")
+            && m.desc.equals("(Lnet/minecraft/client/gui/screens/Screen;)V")), "Exact screen replacement hook");
+        require(resourceClass("net/minecraft/client/gui/screens/options/OptionsSubScreen").fields.stream().anyMatch(f ->
+            f.name.equals("lastScreen") && f.desc.equals("Lnet/minecraft/client/gui/screens/Screen;")), "Parent screen accessor target");
+        var video = resourceClass("dev/tapetum/shaders/gui/TapetumVideoSettingsScreen");
+        require(video.superName.equals("net/minecraft/client/gui/screens/options/VideoSettingsScreen"),
+            "Native video options, GPU warnings and cleanup are retained");
+        for (String screen : Set.of("ShaderPackScreen", "TapetumVideoSettingsScreen", "ShaderPackOptionsScreen")) {
+            var node = resourceClass("dev/tapetum/shaders/gui/" + screen);
+            require(node.methods.stream().anyMatch(m -> m.name.equals("extractBackground") && m.desc.equals(guiDescriptor)),
+                "Screen owns its transparent background: " + screen);
+            require(node.methods.stream().flatMap(m -> java.util.Arrays.stream(m.instructions.toArray()))
+                .noneMatch(i -> i instanceof MethodInsnNode call && Set.of("extractTransparentBackground", "extractBlurredBackground")
+                    .contains(call.name)), "No stacked darkness/blur: " + screen);
+        }
+        String icon = metadata.get("icon").getAsString();
+        require(icon.equals("assets/tapetumshaders/textures/gui/sprites/logo.png"), "Supplied logo registered in metadata");
+        byte[] png = read(mod, icon);
+        require(png.length > 100 && png[0] == (byte) 137 && png[1] == 'P' && png[2] == 'N' && png[3] == 'G', "Logo PNG packaged");
+        var renderer = resourceClass("dev/tapetum/shaders/gui/TransparentWidgets");
+        require(renderer.methods.stream().flatMap(m -> java.util.Arrays.stream(m.instructions.toArray()))
+            .noneMatch(i -> i instanceof MethodInsnNode call && call.owner.equals("net/minecraft/client/OptionInstance")
+                && call.name.equals("set")), "Skin paints values without mutating native options");
+        var options = resourceClass("dev/tapetum/shaders/gui/ShaderPackOptionsScreen");
+        require(options.methods.stream().filter(m -> m.name.equals("apply"))
+            .flatMap(m -> java.util.Arrays.stream(m.instructions.toArray()))
+            .anyMatch(i -> i instanceof MethodInsnNode call && call.name.equals("reload")),
+            "Applying pack settings reaches the real pipeline reload");
+        require(options.methods.stream().filter(m -> m.name.equals("onClose"))
+            .flatMap(m -> java.util.Arrays.stream(m.instructions.toArray()))
+            .noneMatch(i -> i instanceof MethodInsnNode call && Set.of("save", "reload", "setPackOptions").contains(call.name)),
+            "Closing pack settings does not persist pending changes");
     }
 
     private static void verifyRenderHooks(JarFile mod) throws IOException {
