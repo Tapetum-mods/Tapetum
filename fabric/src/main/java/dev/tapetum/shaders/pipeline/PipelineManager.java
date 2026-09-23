@@ -141,7 +141,8 @@ public class PipelineManager implements ShaderEngine {
 		var loaded = TapetumShaders.getShaderpackManager().load(name);
 		if (loaded.isEmpty()) return Optional.empty();
 		try (var pack = loaded.get()) {
-			return Optional.of(new dev.tapetum.shaders.gui.ShaderPackOptionsScreen(parent, name, pack.getOptions()));
+			return Optional.of(new dev.tapetum.shaders.gui.ShaderPackOptionsScreen(parent, name, pack.getOptions(),
+				pack.getMenu(Minecraft.getInstance().options.languageCode)));
 		} catch (IOException error) {
 			LOGGER.error("Failed to read options for '{}'", name, error);
 			lastFailure = error;
