@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Minecraft 1.19.4 Port
+
+- Target Minecraft 1.19.4 with Fabric API 0.87.2 and Java 21.
+- Adapt biome and eye-light sampling to the native BlockPos.containing API.
+- Keep exact-version draw, menu and remapping checks; in-game visual acceptance remains pending.
+
 ### Minecraft 1.19.3 Port
 
 - Target the exact Minecraft 1.19.3 release with Fabric API 0.76.1 and Java 21.

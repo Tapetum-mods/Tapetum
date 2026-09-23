@@ -636,7 +636,7 @@ public final class CompositeChainPipeline implements RenderingPipeline {
 		int blockLight = 0;
 		int skyLight = 0;
 		if (level != null && camera != null) {
-			BlockPos eye = new BlockPos(camera.getEyePosition(1.0f));
+			BlockPos eye = BlockPos.containing(camera.getEyePosition(1.0f));
 			var lighting = level.getLightEngine();
 			blockLight = lighting.getLayerListener(LightLayer.BLOCK).getLightValue(eye) * LIGHT_SCALE;
 			skyLight = lighting.getLayerListener(LightLayer.SKY).getLightValue(eye) * LIGHT_SCALE;
