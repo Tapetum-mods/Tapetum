@@ -9,6 +9,37 @@ import org.junit.jupiter.api.io.TempDir;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ShaderPackOptionsTest {
+    @Test void discoversSwitchesUsedInOtherFilesAndDefinedExpressions() {
+        var options = ShaderPackOptions.parse(List.of("#define BLOOM\n// #define RAIN\n#define UNUSED\n",
+            "#if defined(BLOOM) && !defined RAIN\n#endif\n// #ifdef UNUSED\n"));
+        assertEquals(List.of("BLOOM", "RAIN"), options.entries().stream().map(ShaderPackOptions.Option::name).toList());
+        assertTrue(options.apply("// #define RAIN\n", Map.of("RAIN", "true")).startsWith("#define RAIN"));
+    }
+
+    @Test void readsAndAppliesAuthorMarkedConstantsWithoutChangingDerivedValues() {
+        String source = """
+            const float shadowDistance = 192.0; // [64.0 128.0 192.0]
+            const bool glow = true; // [false true]
+            const int count = 4; // [2 4 8]
+            const float INTERNAL = 1.0;
+            const float invalid = 1.0; // [1.0 bad()]
+            """;
+        var options = ShaderPackOptions.parse(List.of(source));
+        assertEquals(3, options.entries().size());
+        var result = options.apply(source, Map.of("shadowDistance", "64.0", "glow", "false", "count", "8"));
+        assertTrue(result.contains("const float shadowDistance = 64.0;"));
+        assertTrue(result.contains("const bool glow = false;"));
+        assertTrue(result.contains("const int count = 8;"));
+        assertEquals(source.lines().count(), result.lines().count());
+        assertEquals("const float shadowDistance = OTHER;", options.apply("const float shadowDistance = OTHER;", Map.of("shadowDistance", "64.0")));
+        assertEquals(source, options.apply(source, Map.of("count", "8;discard;")));
+    }
+
+    @Test void excludesConflictingConstantAndMacroNames() {
+        var options = ShaderPackOptions.parse(List.of("const int SIZE = 1; // [1 2]\n#define SIZE 1 // [1 2]"));
+        assertTrue(options.entries().isEmpty());
+    }
+
     @Test void readsRangesAndSwitchesButNotIncludeGuards() {
         var options = ShaderPackOptions.parse(List.of("""
             #ifndef HEADER
