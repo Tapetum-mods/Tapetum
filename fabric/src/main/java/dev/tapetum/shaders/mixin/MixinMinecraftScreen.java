@@ -8,13 +8,13 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
-@Mixin(Minecraft.class)
+@Mixin(net.minecraft.client.gui.Gui.class)
 public abstract class MixinMinecraftScreen {
     @ModifyVariable(method = "setScreen", at = @At("HEAD"), argsOnly = true)
     private Screen tapetum$videoSettings(Screen screen) {
         // Leave screens provided by other mods alone, including our own subclass.
         if (screen != null && screen.getClass() == VideoSettingsScreen.class) {
-            Minecraft client = (Minecraft) (Object) this;
+            Minecraft client = Minecraft.getInstance();
             return new TapetumVideoSettingsScreen(((AccessorOptionsSubScreen) screen).tapetum$parent(), client);
         }
         return screen;
