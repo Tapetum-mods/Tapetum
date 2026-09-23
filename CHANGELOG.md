@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Minecraft 1.19.2 Port
+
+- Compile and remap against Minecraft 1.19.2 with Fabric API 0.77.0+1.19.2 and exact artifact metadata.
+- Keep the verified 1.19 indexed terrain and video-settings adapters. Java 21 and in-game validation are required.
+
 ### Minecraft 1.19.1 Port
 
 - Target Minecraft 1.19.1 and Fabric API 0.58.5+1.19.1 with a separate remapped artifact.
