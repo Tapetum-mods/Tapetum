@@ -31,7 +31,6 @@ public class ShaderPackListWidget extends ObjectSelectionList<ShaderPackListWidg
 	public ShaderPackListWidget(Minecraft minecraft, int width, int height, int y, int itemHeight) {
 		super(minecraft, width, height + y, y, y + height, itemHeight);
 		setRenderBackground(false);
-		setRenderTopAndBottom(false);
 	}
 
 	public void setSelectionListener(Runnable selectionListener) {

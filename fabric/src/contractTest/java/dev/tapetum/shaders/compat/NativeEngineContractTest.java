@@ -126,7 +126,7 @@ public final class NativeEngineContractTest {
         require(draw.visibleAnnotations.stream().anyMatch(a -> a.values != null && a.values.contains("cancellable")
             && Boolean.TRUE.equals(a.values.get(a.values.indexOf("cancellable") + 1))), "Native draw can replace the vanilla draw");
         var renderer = resourceClass("net/minecraft/client/renderer/LevelRenderer");
-        require(renderer.methods.stream().anyMatch(m -> m.name.equals("renderChunkLayer")
+        require(renderer.methods.stream().anyMatch(m -> m.name.equals("renderSectionLayer")
             && m.desc.equals("(Lnet/minecraft/client/renderer/RenderType;Lcom/mojang/blaze3d/vertex/PoseStack;DDDLorg/joml/Matrix4f;)V")),
             "Exact chunk-layer wrapper target exists");
         var layers = new ClassNode();

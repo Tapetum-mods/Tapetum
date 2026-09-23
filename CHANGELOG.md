@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Minecraft 1.20.2 Port
+
+- Target Minecraft 1.20.2 with Fabric API 0.91.6 and Java 21.
+- Adapt screen backgrounds and the updated selection-list API.
+- Attach terrain rendering to the renamed renderSectionLayer method and verify its exact descriptor.
+- In-game acceptance and complete shaderpack rendering remain pending.
+
 ### Minecraft 1.20.1 Port
 
 - Build the exact Minecraft 1.20.1 release with Fabric API 0.92.12 and Java 21.

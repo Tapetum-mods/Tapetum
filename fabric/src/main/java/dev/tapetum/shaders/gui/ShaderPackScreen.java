@@ -359,7 +359,7 @@ public class ShaderPackScreen extends Screen {
 
 	@Override
 	public void render(GuiGraphics pose, int mouseX, int mouseY, float partialTick) {
-		if (minecraft.level == null) renderBackground(pose);
+		if (minecraft.level == null) renderBackground(pose, mouseX, mouseY, partialTick);
 		packList.render(pose, mouseX, mouseY, partialTick);
 
 		pose.drawCenteredString(this.font, this.title, this.width / 2, TITLE_Y, 0xFFFFFFFF);

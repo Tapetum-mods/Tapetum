@@ -24,7 +24,7 @@ import net.minecraft.client.renderer.RenderType;
 /** Brackets world rendering and captures the matrices used by each terrain layer. */
 @Mixin(LevelRenderer.class)
 public abstract class MixinLevelRenderer {
-    @WrapMethod(method = "renderChunkLayer")
+    @WrapMethod(method = "renderSectionLayer")
     private void tapetum$terrainLayer(RenderType type, PoseStack pose, double x, double y, double z,
             Matrix4f projection, Operation<Void> original) {
         var pipeline = TapetumShaders.getPipelineManager().getPipeline();
