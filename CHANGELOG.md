@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Minecraft 1.18.1 Port
+
+- Compile, remap and check the exact Minecraft 1.18.1 target using its own game archive.
+- Retain the 1.18 terrain adapter and require Java 21. In-game rendering remains unverified.
+
 ### Minecraft 1.18 Port
 
 - Compile and remap the standalone renderer against Minecraft 1.18 and Fabric API 0.46.6+1.18.
