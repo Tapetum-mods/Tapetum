@@ -4,6 +4,11 @@
 
 ### Fixed
 
+- Fixed the missing pack-settings workflow: editable define options now persist per pack and
+  reach shader source preparation before recompilation. Cancel discards unapplied changes.
+- Replaced the duplicated vanilla shader entry with a dedicated video-settings screen that retains
+  native option callbacks and cleanup, with search, categories and bounded labels.
+
 - Restored the complete Java extension Gradle script bundle, not only the first missing file.
 - Disabled parallel Gradle execution by default to avoid the JDT LS annotation-processor model
   locking failure; added a terminal-only Tooling API reproducer and verification utility.
@@ -19,8 +24,15 @@
 
 ### Changed
 
+- Added semi-transparent, higher-opacity menus and the supplied Tapetum logo.
+- Added searchable per-pack define controls, boolean checkboxes, discrete numeric sliders,
+  value selectors, reset and paginated navigation. Profiles, authored submenus and const options
+  are not implemented yet. This does not add geometry or shadow rendering.
+- The 1.16.5 branch now builds its own remapped experimental JAR with Java 21 and headless
+  legacy API, matrix and archive checks. In-game startup and appearance remain unverified.
+
 - Removed retired external-renderer integration sources, dependent tests and the embedded-engine smoke script.
-- Published the unfinished 1.16.5 port separately from buildable 26.x branches; no legacy artifact is claimed.
+- Published the 1.16.5 port separately from the 26.x branches; compatibility is tracked per branch.
 
 - Reorganized active development into one Minecraft version per Git branch, with common/ and
   fabric/ modules instead of shared/ and parallel mc26.* modules. Preserved existing history.

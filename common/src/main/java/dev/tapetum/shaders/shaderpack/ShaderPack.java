@@ -22,6 +22,8 @@ public class ShaderPack implements AutoCloseable {
 	private final Path shaderRoot;
 	private final ShaderProperties properties;
 	private final String propertiesText;
+	private ShaderPackOptions options;
+	private java.util.Map<String, String> optionValues = java.util.Map.of();
 	/** Null for a directory-backed pack, which has no filesystem handle to release. */
 	private final Closeable closeHandle;
 
@@ -64,6 +66,35 @@ public class ShaderPack implements AutoCloseable {
 
 	public ShaderProperties getProperties() {
 		return properties;
+	}
+
+	public ShaderPackOptions getOptions() throws IOException {
+		if (options != null) return options;
+		var sources = new java.util.ArrayList<String>();
+		long total = 0;
+		Path realRoot = shaderRoot.toRealPath();
+		try (var files = Files.walk(shaderRoot, 32)) {
+			var iterator = files.filter(path -> Files.isRegularFile(path)
+				&& path.getFileName().toString().matches(".*\\.(vsh|fsh|gsh|csh|glsl)")).iterator();
+			while (iterator.hasNext()) {
+				Path file = iterator.next();
+				if (!file.toRealPath().startsWith(realRoot)) throw new IOException("Shader source escapes pack root");
+				if (sources.size() >= 4096) throw new IOException("Too many shader sources");
+				try (var input = Files.newInputStream(file)) {
+					byte[] bytes = input.readNBytes(2 * 1024 * 1024 + 1);
+					total += bytes.length;
+					if (bytes.length > 2 * 1024 * 1024 || total > 64 * 1024 * 1024)
+						throw new IOException("Shader option source limit exceeded");
+					sources.add(new String(bytes, java.nio.charset.StandardCharsets.UTF_8));
+				}
+			}
+		}
+		options = ShaderPackOptions.parse(sources);
+		return options;
+	}
+
+	public void setOptionValues(java.util.Map<String, String> values) throws IOException {
+		optionValues = values.isEmpty() ? java.util.Map.of() : getOptions().validate(values);
 	}
 
 	/**
@@ -113,6 +144,7 @@ public class ShaderPack implements AutoCloseable {
 		// lives in a world<id>/ subfolder: a pack's "/program/final.glsl" means shaders/program/...,
 		// not shaders/world0/program/..., and resolving it relative to the program would break it.
 		String expanded = new GlslIncludeResolver(shaderRoot).resolve(Files.readString(file), file);
+		if (!optionValues.isEmpty()) expanded = getOptions().apply(expanded, optionValues);
 		return Optional.of(GlslCompatPatcher.patch(expanded, stage, macros));
 	}
 
