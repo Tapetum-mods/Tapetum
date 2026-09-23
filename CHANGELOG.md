@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Minecraft 1.17.1 Port
+
+- Build and remap against Minecraft 1.17.1 itself, with an exact runtime version constraint.
+- Retain the 1.17 indexed terrain adapter and run the same API and artifact checks against 1.17.1.
+- This remains experimental, requires Java 21 and needs an in-game validation run.
+
 ### Minecraft 1.17 Port
 
 - Adapt the standalone Fabric build, video settings entry and render hooks to Minecraft 1.17.
