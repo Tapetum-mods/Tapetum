@@ -76,6 +76,13 @@ class GbufferProgramTest {
 	}
 
 	@Test
+	void cutoutUsesItsOwnProgramBeforeTerrainFallback() {
+		assertEquals(GbufferProgram.TERRAIN_CUTOUT, resolve(GbufferProgram.TERRAIN_CUTOUT,
+			GbufferProgram.TERRAIN_CUTOUT, GbufferProgram.TERRAIN));
+		assertEquals(GbufferProgram.TERRAIN, resolve(GbufferProgram.TERRAIN_CUTOUT, GbufferProgram.TERRAIN));
+	}
+
+	@Test
 	void everyChainTerminates() {
 		// A cycle here would hang resolution rather than fail it.
 		for (GbufferProgram program : GbufferProgram.values()) {

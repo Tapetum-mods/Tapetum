@@ -28,6 +28,7 @@ public enum GbufferProgram {
 
 	TERRAIN("gbuffers_terrain", TEXTURED_LIT),
 	TERRAIN_SOLID("gbuffers_terrain_solid", TERRAIN),
+	TERRAIN_CUTOUT("gbuffers_terrain_cutout", TERRAIN),
 	DAMAGED_BLOCK("gbuffers_damagedblock", TERRAIN),
 	BLOCK("gbuffers_block", TERRAIN),
 	BLOCK_TRANSLUCENT("gbuffers_block_translucent", BLOCK),
